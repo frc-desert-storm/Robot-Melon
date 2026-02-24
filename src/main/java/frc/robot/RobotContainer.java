@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ShooterRPMCommand;
+import frc.robot.commands.TurretRPMCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -28,6 +29,9 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.shooter.*;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIOKraken;
+import frc.robot.subsystems.turret.TurretIOSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -47,7 +51,9 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser;
 
   private final Shooter shooter =
-      new Shooter(RobotBase.isReal() ? new ShooterIOKraken(15) : new ShooterIOSim());
+      new Shooter(RobotBase.isReal() ? new ShooterIOKraken(15) : new ShooterIOSim(15));
+  private final Turret turret =
+      new Turret(RobotBase.isReal() ? new TurretIOKraken(14) : new TurretIOSim(14));
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -168,11 +174,17 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    Trigger forwardOnly = controller.rightBumper().and(controller.leftBumper().negate());
-    Trigger reverseOnly = controller.leftBumper().and(controller.rightBumper().negate());
+    Trigger shooterForwardOnly = controller.rightBumper().and(controller.leftBumper().negate());
+    Trigger shooterReverseOnly = controller.leftBumper().and(controller.rightBumper().negate());
 
-    forwardOnly.whileTrue(new ShooterRPMCommand(shooter, 5000));
-    reverseOnly.whileTrue(new ShooterRPMCommand(shooter, -2000));
+    shooterForwardOnly.whileTrue(new ShooterRPMCommand(shooter, true));
+    shooterReverseOnly.whileTrue(new ShooterRPMCommand(shooter, false));
+
+    Trigger turretRightOnly = controller.povRight().and(controller.povLeft().negate());
+    Trigger turretLeftOnly = controller.povLeft().and(controller.povRight().negate());
+
+    turretRightOnly.whileTrue(new TurretRPMCommand(turret, true));
+    turretLeftOnly.whileTrue(new TurretRPMCommand(turret, false));
   }
 
   /**
@@ -182,5 +194,11 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void stopMechanisms() {
+    shooter.stop();
+    turret.stop();
+    drive.stop();
   }
 }

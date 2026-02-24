@@ -17,6 +17,16 @@ import edu.wpi.first.wpilibj.RobotBase;
 public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
+  
+  public static final double turretRPMRight = 7;
+  public static final double turretRPMLeft = 7;
+  public static final double turretRightHardstopAngle = -120;
+  public static final double turretLeftHardstopAngle = 120;
+  public static final double turretAngleTolerance = 5;
+
+
+  public static double shooterForwardRPM = 2000;
+  public static double shooterBackwardRPM = -2000;
 
   public static enum Mode {
     /** Running on a real robot. */

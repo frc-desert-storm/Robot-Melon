@@ -41,6 +41,8 @@ public class Shooter extends SubsystemBase {
     inputs.ready = readyTimer.hasElapsed(ShooterIO.READY_TIME_SEC);
 
     Logger.processInputs("Shooter", inputs);
+
+    // TODO : if(robot is disabled, end of auto, or end of teleop) stop motors
   }
 
   public void setRPM(double rpm) {

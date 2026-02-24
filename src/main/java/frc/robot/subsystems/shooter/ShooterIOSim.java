@@ -1,76 +1,61 @@
 package frc.robot.subsystems.shooter;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 public class ShooterIOSim implements ShooterIO {
 
-  private double measurementStdDevs = 1.0;
+  private final TalonFX motor; // fake motor, for interface consistency
+  private final VelocityVoltage velocityReq = new VelocityVoltage(0).withEnableFOC(true);
+  private final VoltageOut voltageReq = new VoltageOut(0).withEnableFOC(true);
 
-  private final FlywheelSim sim;
-
+  private double simulatedRPM = 0.0;
   private double setpointRPM = 0.0;
   private double appliedVolts = 0.0;
 
-  private final Timer timer = new Timer();
-  private double lastTime = 0;
-
-  public ShooterIOSim() {
-
-    var plant =
-        LinearSystemId.createFlywheelSystem(
-            DCMotor.getKrakenX60(1), ShooterIO.gearedInertia, ShooterIO.motorRevolutionsPerRadian);
-
-    sim = new FlywheelSim(plant, DCMotor.getKrakenX60(1), measurementStdDevs);
-
-    timer.start();
-    lastTime = timer.get();
+  public ShooterIOSim(int id) {
+    motor = new TalonFX(id); // still exists for interface, but does nothing
   }
 
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
+    // Simple physics simulation: ramp to setpoint
+    double error = setpointRPM - simulatedRPM;
+    double ramp = Math.copySign(Math.min(1000.0, Math.abs(error)), error); // max 1000 RPM/sec
+    simulatedRPM += ramp * 0.02; // 20ms per update
 
-    double now = timer.get();
-    sim.update(now - lastTime);
-    lastTime = now;
-
-    inputs.velocityRPM = sim.getAngularVelocityRPM();
+    inputs.velocityRPM = simulatedRPM;
     inputs.velocitySetpointRPM = setpointRPM;
+
     inputs.appliedVolts = appliedVolts;
-    inputs.supplyCurrentAmps = sim.getCurrentDrawAmps();
-    inputs.torqueCurrentAmps = sim.getCurrentDrawAmps();
-    inputs.motorTempCelsius = 25;
+    inputs.supplyCurrentAmps = 10.0 * Math.abs(appliedVolts / 12.0); // fake current
+    inputs.torqueCurrentAmps = 10.0 * Math.abs(appliedVolts / 12.0);
+    inputs.motorTempCelsius = 25.0;
 
-    inputs.atSetpoint = Math.abs(inputs.velocityRPM - setpointRPM) < VELOCITY_TOLERANCE_RPM;
-
-    inputs.jamDetected =
-        inputs.torqueCurrentAmps > JAM_CURRENT_AMPS && Math.abs(inputs.velocityRPM) < 500;
-
+    inputs.atSetpoint = Math.abs(simulatedRPM - setpointRPM) < VELOCITY_TOLERANCE_RPM;
+    inputs.jamDetected = false;
     inputs.ready = false;
   }
 
   @Override
   public void setVelocityRPM(double rpm) {
     setpointRPM = rpm;
-
-    double error = rpm - sim.getAngularVelocityRPM();
-    appliedVolts = Math.max(-12, Math.min(12, error * 0.002));
-    sim.setInputVoltage(appliedVolts);
+    appliedVolts = Math.min(12.0, rpm / 6000.0 * 12.0); // simple feedforward
+    motor.setControl(velocityReq.withVelocity(rpm / 60.0));
   }
 
   @Override
   public void setVoltage(double volts) {
+    setpointRPM = 0.0;
     appliedVolts = volts;
-    setpointRPM = 0;
-    sim.setInputVoltage(volts);
+    motor.setControl(voltageReq.withOutput(volts));
   }
 
   @Override
   public void stop() {
-    appliedVolts = 0;
-    setpointRPM = 0;
-    sim.setInputVoltage(0);
+    setpointRPM = 0.0;
+    appliedVolts = 0.0;
+    motor.stopMotor();
   }
 }

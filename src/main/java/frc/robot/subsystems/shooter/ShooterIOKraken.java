@@ -29,13 +29,17 @@ public class ShooterIOKraken implements ShooterIO {
     cfg.Slot0.kV = 0.12; // replace after SysId
     cfg.Slot0.kS = 0.15;
 
+    cfg.Feedback.SensorToMechanismRatio = ShooterIO.GEAR_RATIO;
+
     motor.getConfigurator().apply(cfg);
+
+    motor.set(0);
   }
 
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
 
-    double rpm = motor.getVelocity().getValueAsDouble() * 60.0;
+    double rpm = (motor.getVelocity().getValueAsDouble() * 60.0);
 
     inputs.velocityRPM = rpm;
     inputs.velocitySetpointRPM = setpointRPM;
