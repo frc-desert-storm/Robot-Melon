@@ -5,7 +5,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFXS;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.util.Units;
 
 public class TurretIOKraken implements TurretIO {
@@ -57,7 +56,8 @@ public class TurretIOKraken implements TurretIO {
 
     inputs.atSetpoint = Math.abs(rpm - setpointRPM) < VELOCITY_TOLERANCE_RPM;
 
-    inputs.hardstopDetected = (inputs.torqueCurrentAmps > HARDSTOP_CURRENT_AMPS) && (Math.abs(rpm) < 500);
+    inputs.hardstopDetected =
+        (inputs.torqueCurrentAmps > HARDSTOP_CURRENT_AMPS) && (Math.abs(rpm) < 500);
     inputs.jamDetected = (inputs.torqueCurrentAmps > JAM_CURRENT_AMPS) && (Math.abs(rpm) < 500);
 
     inputs.ready = false; // computed in subsystem
@@ -95,8 +95,7 @@ public class TurretIOKraken implements TurretIO {
   // }
 
   @Override
-  public void setVelocityRPM(double rpm)
-  {
+  public void setVelocityRPM(double rpm) {
     setpointRPM = rpm;
     motor.setControl(velocityReq.withVelocity(rpm / 60.0));
 
@@ -104,13 +103,11 @@ public class TurretIOKraken implements TurretIO {
   }
 
   @Override
-  public void setCurrentAngleDegrees(double degrees)
-  {
+  public void setCurrentAngleDegrees(double degrees) {
     motor.setPosition(Units.degreesToRotations((degrees)));
   }
 
-  public double getCurrentAngle()
-  {
+  public double getCurrentAngle() {
     return Units.rotationsToDegrees(motor.getPosition().getValueAsDouble());
   }
 

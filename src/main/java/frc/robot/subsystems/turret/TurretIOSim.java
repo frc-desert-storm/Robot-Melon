@@ -3,7 +3,6 @@ package frc.robot.subsystems.turret;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-
 import frc.robot.Constants;
 
 public class TurretIOSim implements TurretIO {
@@ -16,7 +15,6 @@ public class TurretIOSim implements TurretIO {
   private double setpointRPM = 0.0;
   private double appliedVolts = 0.0;
   private double simulatedAngle = 0;
-
 
   public TurretIOSim(int id) {
     motor = new TalonFX(id); // still exists for interface, but does nothing
@@ -44,7 +42,7 @@ public class TurretIOSim implements TurretIO {
     inputs.ready = false;
   }
 
-   private boolean bGoingRight = false;
+  private boolean bGoingRight = false;
 
   // @Override
   // public void rotateRight(double rpm) {
@@ -78,21 +76,21 @@ public class TurretIOSim implements TurretIO {
   // }
 
   @Override
-  public void setVelocityRPM(double rpm)
-  {
+  public void setVelocityRPM(double rpm) {
     setpointRPM = rpm;
     appliedVolts = Math.min(12.0, rpm / 6000.0 * 12.0); // simple feedforward
     motor.setControl(velocityReq.withVelocity(rpm / 60.0));
     bGoingRight = rpm > 0;
 
     if (bGoingRight)
-      simulatedAngle += getCurrentAngle() > Constants.turretRightHardstopAngle ?  Math.copySign(1, rpm) : 0 ;
+      simulatedAngle +=
+          getCurrentAngle() > Constants.turretRightHardstopAngle ? Math.copySign(1, rpm) : 0;
     else
-      simulatedAngle += getCurrentAngle() < Constants.turretLeftHardstopAngle ?  Math.copySign(1, rpm) : 0 ;
+      simulatedAngle +=
+          getCurrentAngle() < Constants.turretLeftHardstopAngle ? Math.copySign(1, rpm) : 0;
   }
 
-  public double getCurrentAngle()
-  {
+  public double getCurrentAngle() {
     return simulatedAngle;
   }
 
@@ -114,6 +112,5 @@ public class TurretIOSim implements TurretIO {
   public void setCurrentAngleDegrees(double degrees) {
     // TODO Auto-generated method stub
     simulatedAngle = degrees;
-   
   }
 }

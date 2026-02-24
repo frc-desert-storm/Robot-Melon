@@ -13,7 +13,7 @@ public class ShooterRPMCommand extends Command {
     this.shooter = shooter;
     this.bIsForwards = bIsForwards;
 
-     addRequirements(shooter);
+    addRequirements(shooter);
   }
 
   public void setRPM(double rpm) {

@@ -4,11 +4,9 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
-
-// import java.io.Console;
-
 import org.littletonrobotics.junction.Logger;
 
+// import java.io.Console;
 
 public class Turret extends SubsystemBase {
 
@@ -49,14 +47,15 @@ public class Turret extends SubsystemBase {
   }
 
   public void rotateRight(double rpm) {
-    if( (inputs.hardstopDetected && inputs.goingRight)   )
-    {
+    if ((inputs.hardstopDetected && inputs.goingRight)) {
       io.setCurrentAngleDegrees(Constants.turretRightHardstopAngle);
       stop();
       rpm = 0;
     }
 
-    if ( inputs.jamDetected || Math.abs(inputs.currentAngle) >= Math.abs(Constants.turretRightHardstopAngle) - Constants.turretAngleTolerance) {
+    if (inputs.jamDetected
+        || Math.abs(inputs.currentAngle)
+            >= Math.abs(Constants.turretRightHardstopAngle) - Constants.turretAngleTolerance) {
       rpm = 0;
     }
 
@@ -64,22 +63,22 @@ public class Turret extends SubsystemBase {
   }
 
   public void rotateLeft(double rpm) {
-    if( (inputs.hardstopDetected && !inputs.goingRight)   )
-    {
+    if ((inputs.hardstopDetected && !inputs.goingRight)) {
       io.setCurrentAngleDegrees(Constants.turretLeftHardstopAngle);
       stop();
       rpm = 0;
     }
 
-    if ( inputs.jamDetected || Math.abs(inputs.currentAngle) >= Math.abs(Constants.turretLeftHardstopAngle) - Constants.turretAngleTolerance) {
+    if (inputs.jamDetected
+        || Math.abs(inputs.currentAngle)
+            >= Math.abs(Constants.turretLeftHardstopAngle) - Constants.turretAngleTolerance) {
       rpm = 0;
     }
 
     setRPM(rpm);
   }
 
-  private void setRPM(double rpm)
-  {
+  private void setRPM(double rpm) {
     io.setVelocityRPM(rpm);
   }
 

@@ -45,7 +45,7 @@ public interface TurretIO {
 
   void setCurrentAngleDegrees(double degrees);
 
-  void setVelocityRPM(double rpm); 
+  void setVelocityRPM(double rpm);
 
   void setVoltage(double volts);
 

@@ -26,10 +26,8 @@ public class TurretRPMCommand extends Command {
 
   @Override
   public void initialize() {
-    if (bIsRight) 
-      rotateRight( Constants.turretRPMRight );
-    else
-      rotateLeft( Constants.turretRPMLeft ) ;
+    if (bIsRight) rotateRight(Constants.turretRPMRight);
+    else rotateLeft(Constants.turretRPMLeft);
   }
 
   @Override
