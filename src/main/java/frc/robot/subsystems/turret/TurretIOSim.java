@@ -3,7 +3,6 @@ package frc.robot.subsystems.turret;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import frc.robot.Constants;
 
 public class TurretIOSim implements TurretIO {
 
@@ -15,6 +14,8 @@ public class TurretIOSim implements TurretIO {
   private double setpointRPM = 0.0;
   private double appliedVolts = 0.0;
   private double simulatedAngle = 0;
+
+  private boolean isGoingRight = false;
 
   public TurretIOSim(int id) {
     motor = new TalonFX(id); // still exists for interface, but does nothing
@@ -28,7 +29,7 @@ public class TurretIOSim implements TurretIO {
     simulatedRPM += ramp * 0.02; // 20ms per update
 
     inputs.velocityRPM = simulatedRPM;
-    // inputs.velocitySetpointRPM = setpointRPM;
+    inputs.velocitySetpointRPM = setpointRPM;
 
     inputs.currentAngle = getCurrentAngle();
 
@@ -40,9 +41,9 @@ public class TurretIOSim implements TurretIO {
     inputs.atSetpoint = Math.abs(simulatedRPM - setpointRPM) < VELOCITY_TOLERANCE_RPM;
     inputs.hardstopDetected = false;
     inputs.ready = false;
-  }
 
-  private boolean bGoingRight = false;
+    inputs.goingRight = isGoingRight;
+  }
 
   // @Override
   // public void rotateRight(double rpm) {
@@ -78,16 +79,38 @@ public class TurretIOSim implements TurretIO {
   @Override
   public void setVelocityRPM(double rpm) {
     setpointRPM = rpm;
-    appliedVolts = Math.min(12.0, rpm / 6000.0 * 12.0); // simple feedforward
+    appliedVolts = Math.min(12.0, rpm * 2 / 6000.0 * 12.0); // simple feedforward
     motor.setControl(velocityReq.withVelocity(rpm / 60.0));
-    bGoingRight = rpm > 0;
+    isGoingRight = rpm > 0;
 
-    if (bGoingRight)
-      simulatedAngle +=
-          getCurrentAngle() > Constants.turretRightHardstopAngle ? Math.copySign(1, rpm) : 0;
-    else
-      simulatedAngle +=
-          getCurrentAngle() < Constants.turretLeftHardstopAngle ? Math.copySign(1, rpm) : 0;
+    // if (bGoingRight)
+    //   simulatedAngle +=
+    //       getCurrentAngle() > Constants.turretRightHardstopAngle ? Math.copySign(1, rpm) : 0;
+    // else
+    //   simulatedAngle +=
+    //       getCurrentAngle() < Constants.turretLeftHardstopAngle ? Math.copySign(1, rpm) : 0;
+  }
+
+  @Override
+  public void periodic() {
+
+    double mu = 0.3;
+
+    if (Math.abs(simulatedRPM) < 1) return;
+
+    double degrees = (60 * simulatedRPM) / GEAR_RATIO / 50;
+
+    simulatedAngle += degrees * mu;
+
+    // if (isGoingRight)
+    //   // simulatedAngle +=
+    //   //     getCurrentAngle() > Constants.turretRightHardstopAngle ? Math.copySign(degrees,
+    // setpointRPM) : 0;
+
+    // else
+    //   simulatedAngle +=
+    //       getCurrentAngle() < Constants.turretLeftHardstopAngle ? Math.copySign(degrees,
+    // setpointRPM) : 0;
   }
 
   public double getCurrentAngle() {
@@ -110,7 +133,6 @@ public class TurretIOSim implements TurretIO {
 
   @Override
   public void setCurrentAngleDegrees(double degrees) {
-    // TODO Auto-generated method stub
     simulatedAngle = degrees;
   }
 }

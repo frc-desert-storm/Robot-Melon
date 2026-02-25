@@ -30,6 +30,8 @@ public class Turret extends SubsystemBase {
   @Override
   public void periodic() {
 
+    io.periodic();
+
     io.updateInputs(inputs);
 
     if (inputs.atSetpoint) {
@@ -43,6 +45,10 @@ public class Turret extends SubsystemBase {
 
     inputs.ready = readyTimer.hasElapsed(TurretIO.READY_TIME_SEC);
 
+    // Calls logic for left/right movement continuously
+    if (inputs.goingRight) rotateRight(inputs.velocitySetpointRPM);
+    else rotateLeft(inputs.velocitySetpointRPM);
+
     Logger.processInputs("Turret", inputs);
   }
 
@@ -54,10 +60,11 @@ public class Turret extends SubsystemBase {
     }
 
     if (inputs.jamDetected
-        || Math.abs(inputs.currentAngle)
-            >= Math.abs(Constants.turretRightHardstopAngle) - Constants.turretAngleTolerance) {
+        || inputs.currentAngle
+            >= Constants.turretRightHardstopAngle - Constants.turretAngleTolerance) {
       rpm = 0;
-    }
+    } // else if (inputs.currentAngle
+    //     >= Constants.turretRightHardstopAngle - Constants.turretRPMReduceAngle) rpm /= 5;
 
     setRPM(rpm);
   }
@@ -70,10 +77,11 @@ public class Turret extends SubsystemBase {
     }
 
     if (inputs.jamDetected
-        || Math.abs(inputs.currentAngle)
-            >= Math.abs(Constants.turretLeftHardstopAngle) - Constants.turretAngleTolerance) {
+        || inputs.currentAngle
+            <= Constants.turretLeftHardstopAngle + Constants.turretAngleTolerance) {
       rpm = 0;
-    }
+    } // else if (inputs.currentAngle
+    //  <= Constants.turretRightHardstopAngle + Constants.turretRPMReduceAngle) rpm /= 5;
 
     setRPM(rpm);
   }

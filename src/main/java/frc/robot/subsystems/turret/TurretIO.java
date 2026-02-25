@@ -50,4 +50,7 @@ public interface TurretIO {
   void setVoltage(double volts);
 
   void stop();
+
+  default void periodic() {}
+  ;
 }
