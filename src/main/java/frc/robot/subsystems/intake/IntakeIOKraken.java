@@ -3,12 +3,10 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -29,13 +27,13 @@ public class IntakeIOKraken implements IntakeIO {
 
   // ── Configurable constants ────────────────────────────────────────────────
   /** Gear ratio between lift motor output shaft and the mechanism. */
-  public static final double LIFT_GEAR_RATIO = 1.0;
+  public static final double LIFT_GEAR_RATIO = 9.0;
 
   /** Gear ratio between roller motor output shaft and the roller mechanism. */
   public static final double ROLLER_GEAR_RATIO = 1.0;
 
   // MotionMagic gains for lift (tune to robot)
-  private static final double LIFT_kP = 24.0;
+  private static final double LIFT_kP = 0.1;
   private static final double LIFT_kI = 0.0;
   private static final double LIFT_kD = 0.4;
   private static final double LIFT_kS = 0.25;
@@ -48,7 +46,6 @@ public class IntakeIOKraken implements IntakeIO {
   // ── Hardware ─────────────────────────────────────────────────────────────
   private final TalonFX liftMotor;
   private final TalonFX rollerMotor;
-  private final TalonFX conveyorMotor;
 
   // ── Control requests ─────────────────────────────────────────────────────
   private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0).withEnableFOC(true);
@@ -66,21 +63,17 @@ public class IntakeIOKraken implements IntakeIO {
   private final StatusSignal<Voltage> rollerAppliedVolts;
   private final StatusSignal<Current> rollerCurrent;
   private final StatusSignal<Temperature> rollerTemp;
-  private final StatusSignal<Current> conveyorCurrent;
-  private final StatusSignal<Temperature> conveyorTemp;
 
   /**
    * Constructs the TalonFX intake IO.
    *
    * @param liftCanId CAN ID for the lift motor
    * @param rollerCanId CAN ID for the roller leader motor
-   * @param conveyorCanId CAN ID for the conveyor follower motor
    * @param canbus CANivore bus name, or empty string for RIO CAN
    */
-  public IntakeIOKraken(int liftCanId, int rollerCanId, int conveyorCanId, String canbus) {
+  public IntakeIOKraken(int liftCanId, int rollerCanId, String canbus) {
     liftMotor = new TalonFX(liftCanId, canbus);
     rollerMotor = new TalonFX(rollerCanId, canbus);
-    conveyorMotor = new TalonFX(conveyorCanId, canbus);
 
     // ── Lift configuration ────────────────────────────────────────────────
     var liftCfg = new TalonFXConfiguration();
@@ -113,18 +106,6 @@ public class IntakeIOKraken implements IntakeIO {
     rollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
     rollerMotor.getConfigurator().apply(rollerCfg);
 
-    // ── Conveyor (follower) configuration ────────────────────────────────
-    var conveyorCfg = new TalonFXConfiguration();
-    conveyorCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    conveyorCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
-    conveyorCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    conveyorCfg.CurrentLimits.StatorCurrentLimit = 60.0;
-    conveyorCfg.CurrentLimits.StatorCurrentLimitEnable = true;
-    conveyorMotor.getConfigurator().apply(conveyorCfg);
-
-    // Conveyor follows roller in the same direction
-    conveyorMotor.setControl(new Follower(rollerCanId, MotorAlignmentValue.Aligned));
-
     // ── Status signal registration ────────────────────────────────────────
     liftPosition = liftMotor.getPosition();
     liftVelocity = liftMotor.getVelocity();
@@ -136,8 +117,6 @@ public class IntakeIOKraken implements IntakeIO {
     rollerAppliedVolts = rollerMotor.getMotorVoltage();
     rollerCurrent = rollerMotor.getSupplyCurrent();
     rollerTemp = rollerMotor.getDeviceTemp();
-    conveyorCurrent = conveyorMotor.getSupplyCurrent();
-    conveyorTemp = conveyorMotor.getDeviceTemp();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -149,13 +128,10 @@ public class IntakeIOKraken implements IntakeIO {
         rollerVelocity,
         rollerAppliedVolts,
         rollerCurrent,
-        rollerTemp,
-        conveyorCurrent,
-        conveyorTemp);
+        rollerTemp);
 
     liftMotor.optimizeBusUtilization();
     rollerMotor.optimizeBusUtilization();
-    conveyorMotor.optimizeBusUtilization();
   }
 
   @Override
@@ -167,8 +143,6 @@ public class IntakeIOKraken implements IntakeIO {
     inputs.rollerMotorConnected =
         BaseStatusSignal.refreshAll(rollerVelocity, rollerAppliedVolts, rollerCurrent, rollerTemp)
             .isOK();
-    inputs.conveyorMotorConnected =
-        BaseStatusSignal.refreshAll(conveyorCurrent, conveyorTemp).isOK();
 
     inputs.liftPositionRot = liftPosition.getValueAsDouble();
     inputs.liftVelocityRpm = liftVelocity.getValueAsDouble() * 60.0;
@@ -180,8 +154,6 @@ public class IntakeIOKraken implements IntakeIO {
     inputs.rollerAppliedVolts = rollerAppliedVolts.getValueAsDouble();
     inputs.rollerCurrentAmps = rollerCurrent.getValueAsDouble();
     inputs.rollerTempCelsius = rollerTemp.getValueAsDouble();
-    inputs.conveyorCurrentAmps = conveyorCurrent.getValueAsDouble();
-    inputs.conveyorTempCelsius = conveyorTemp.getValueAsDouble();
   }
 
   @Override
@@ -196,7 +168,6 @@ public class IntakeIOKraken implements IntakeIO {
 
   @Override
   public void setRollerVoltage(double volts) {
-    // Conveyor follower automatically mirrors this command
     rollerMotor.setControl(rollerVoltageRequest.withOutput(volts));
   }
 

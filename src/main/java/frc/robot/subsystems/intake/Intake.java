@@ -13,8 +13,7 @@ import org.littletonrobotics.junction.Logger;
  * <ul>
  *   <li><b>Lift arm</b> – raises and lowers the intake over the bumper using MotionMagic position
  *       control.
- *   <li><b>Rollers + Conveyor</b> – spins intake rollers and a conveyor belt together
- *       (leader-follower) to pull fuel into the robot.
+ *   <li><b>Rollers</b> – spins intake rollers (leader-follower) to pull fuel into the robot.
  * </ul>
  *
  * <h3>Configurable setpoints (mechanism rotations, post gear-ratio)</h3>
@@ -33,7 +32,7 @@ public class Intake extends SubsystemBase {
   /** Arm fully raised – intake is stowed inside the frame perimeter. */
   public static final double LIFT_UP_POSITION_ROT = 0.0;
 
-  // ── Roller / Conveyor voltages ─────────────────────────────────────────
+  // ── Roller voltages ─────────────────────────────────────────
   /** Voltage applied to rollers during normal intaking. */
   public static final double ROLLER_INTAKE_VOLTS = 10.0;
 
@@ -79,17 +78,17 @@ public class Intake extends SubsystemBase {
     io.setLiftPosition(LIFT_UP_POSITION_ROT);
   }
 
-  /** Spin rollers and conveyor in the intaking direction. */
+  /** Spin rollers in the intaking direction. */
   public void runRollersForward() {
     io.setRollerVoltage(ROLLER_INTAKE_VOLTS);
   }
 
-  /** Spin rollers and conveyor in the ejecting direction. */
+  /** Spin rollers in the ejecting direction. */
   public void runRollersReverse() {
     io.setRollerVoltage(ROLLER_EJECT_VOLTS);
   }
 
-  /** Stop all roller and conveyor motors. */
+  /** Stop all roller motors. */
   public void stopRollers() {
     io.setRollerVoltage(0.0);
   }

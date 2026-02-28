@@ -72,7 +72,6 @@ public class RobotContainer {
               ? new IntakeIOKraken(
                   IntakeConstants.LIFT_CAN_ID,
                   IntakeConstants.ROLLER_CAN_ID,
-                  IntakeConstants.CONVEYOR_CAN_ID,
                   Constants.CANIVORE_BUS)
               : new IntakeIOSim());
   private final Indexer indexer =
@@ -245,12 +244,12 @@ public class RobotContainer {
     controller.rightTrigger().whileTrue(compositeIntake.intakeLowerCommand());
 
     // ── Key 5 : Intake forward ────────────────────────────────────────────
-    // Held: runs rollers + conveyor forward
+    // Held: runs rollers forward
     // Released: stops rollers
     operatorKeyboard.button(5).whileTrue(compositeIntake.intakeForwardCommand());
 
     // ── Key 6 : Intake reverse ────────────────────────────────────────────
-    // Held: runs rollers + conveyor in reverse
+    // Held: runs rollers in reverse
     // Released: stops rollers
     operatorKeyboard.button(6).whileTrue(compositeIntake.intakeReverseCommand());
 

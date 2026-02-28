@@ -9,8 +9,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 /**
  * Simulation implementation of {@link IntakeIO}.
  *
- * <p>Uses WPILib {@link DCMotorSim} to model each motor group. The conveyor follower is represented
- * by a separate sim instance whose velocity mirrors the roller leader.
+ * <p>Uses WPILib {@link DCMotorSim} to model each motor group.
  */
 public class IntakeIOSim implements IntakeIO {
 
@@ -73,16 +72,12 @@ public class IntakeIOSim implements IntakeIO {
     inputs.liftCurrentAmps = Math.abs(liftSim.getCurrentDrawAmps());
     inputs.liftTempCelsius = 25.0;
 
-    // ── Roller + Conveyor (follower mirrors leader) ───────────────────────
+    // ── Roller ───────────────────────
     inputs.rollerMotorConnected = true;
-    inputs.conveyorMotorConnected = true;
     inputs.rollerVelocityRpm = rollerSim.getAngularVelocityRPM();
     inputs.rollerAppliedVolts = rollerAppliedVolts;
     inputs.rollerCurrentAmps = Math.abs(rollerSim.getCurrentDrawAmps());
     inputs.rollerTempCelsius = 25.0;
-    // Conveyor shares the same load in sim (follower)
-    inputs.conveyorCurrentAmps = Math.abs(rollerSim.getCurrentDrawAmps());
-    inputs.conveyorTempCelsius = 25.0;
   }
 
   @Override

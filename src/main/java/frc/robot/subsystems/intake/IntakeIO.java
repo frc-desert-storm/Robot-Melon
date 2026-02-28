@@ -10,7 +10,6 @@ import org.littletonrobotics.junction.AutoLog;
  * <ul>
  *   <li>Motor 1 – Lift arm (raise / lower the intake over the bumper)
  *   <li>Motor 2 – Roller leader (spins the intake rollers)
- *   <li>Motor 3 – Conveyor follower (follows Motor 2, moves fuel into the robot)
  * </ul>
  *
  * <p>Motors 2 and 3 are wired in a leader-follower configuration so a single voltage command drives
@@ -28,15 +27,12 @@ public interface IntakeIO {
     public double liftCurrentAmps = 0.0;
     public double liftTempCelsius = 0.0;
 
-    // ── Roller / Conveyor (leader + follower share one logical group) ───────
+    // ── Roller ──────────────────────────────────────────────────────────────
     public boolean rollerMotorConnected = false;
-    public boolean conveyorMotorConnected = false;
     public double rollerVelocityRpm = 0.0;
     public double rollerAppliedVolts = 0.0;
     public double rollerCurrentAmps = 0.0;
     public double rollerTempCelsius = 0.0;
-    public double conveyorCurrentAmps = 0.0;
-    public double conveyorTempCelsius = 0.0;
   }
 
   /** Update logged inputs. Called every robot loop. */
@@ -58,10 +54,10 @@ public interface IntakeIO {
    */
   default void setLiftVoltage(double volts) {}
 
-  // ── Roller + Conveyor control ─────────────────────────────────────────────
+  // ── Roller control ─────────────────────────────────────────────
 
   /**
-   * Set the roller leader voltage; the conveyor follower mirrors this command.
+   * Set the roller leader voltage
    *
    * @param volts Voltage to apply, positive = intake direction.
    */
