@@ -15,19 +15,29 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.IndexerConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ShooterRPMCommand;
 import frc.robot.commands.TurretRPMCommand;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.composite.CompositeIntakeSubsystem;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIOKraken;
+import frc.robot.subsystems.indexer.IndexerIOSim;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOKraken;
+import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIOKraken;
@@ -46,6 +56,8 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandGenericHID operatorKeyboard =
+      new CommandGenericHID(Constants.OPERATOR_KEYBOARD_PORT);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -54,6 +66,25 @@ public class RobotContainer {
       new Shooter(RobotBase.isReal() ? new ShooterIOKraken(15) : new ShooterIOSim(15));
   private final Turret turret =
       new Turret(RobotBase.isReal() ? new TurretIOKraken(14) : new TurretIOSim(14));
+  private final Intake intake =
+      new Intake(
+          RobotBase.isReal()
+              ? new IntakeIOKraken(
+                  IntakeConstants.LIFT_CAN_ID,
+                  IntakeConstants.ROLLER_CAN_ID,
+                  IntakeConstants.CONVEYOR_CAN_ID,
+                  Constants.CANIVORE_BUS)
+              : new IntakeIOSim());
+  private final Indexer indexer =
+      new Indexer(
+          RobotBase.isReal()
+              ? new IndexerIOKraken(
+                  IndexerConstants.LEADER_CAN_ID,
+                  IndexerConstants.FOLLOWER_CAN_ID,
+                  Constants.CANIVORE_BUS)
+              : new IndexerIOSim());
+  private final CompositeIntakeSubsystem compositeIntake =
+      new CompositeIntakeSubsystem(intake, indexer);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -133,6 +164,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    configureOperatorBindings();
   }
 
   /**
@@ -185,6 +217,52 @@ public class RobotContainer {
 
     turretRightOnly.whileTrue(new TurretRPMCommand(turret, true));
     turretLeftOnly.whileTrue(new TurretRPMCommand(turret, false));
+  }
+
+  private void configureOperatorBindings() {
+
+    // ── Key 1 : Composite forward ─────────────────────────────────────────
+    // Held: lowers arm → waits for arm → runs rollers + indexer forward
+    // Released: stops rollers and indexer
+    // operatorKeyboard.button(1).whileTrue(compositeIntake.compositeForwardCommand());
+    controller.povUp().whileTrue(compositeIntake.compositeForwardCommand());
+
+    // ── Key 2 : Composite reverse ─────────────────────────────────────────
+    // Held: runs rollers + indexer in reverse (eject / un-jam)
+    // Released: stops both
+    // operatorKeyboard.button(2).whileTrue(compositeIntake.compositeReverseCommand());
+    controller.povDown().whileTrue(compositeIntake.compositeReverseCommand());
+
+    // ── Key 3 : Intake lower ──────────────────────────────────────────────
+    // Held: commands arm to down position (MotionMagic holds it)
+    // Released: arm holds position (no explicit cancel)
+    // operatorKeyboard.button(3).onTrue(compositeIntake.intakeLowerCommand());
+    controller.leftTrigger().whileTrue(compositeIntake.intakeRaiseCommand());
+
+    // ── Key 4 : Intake raise ──────────────────────────────────────────────
+    // Held: commands arm to up/stow position
+    // operatorKeyboard.button(4).onTrue(compositeIntake.intakeRaiseCommand());
+    controller.rightTrigger().whileTrue(compositeIntake.intakeLowerCommand());
+
+    // ── Key 5 : Intake forward ────────────────────────────────────────────
+    // Held: runs rollers + conveyor forward
+    // Released: stops rollers
+    operatorKeyboard.button(5).whileTrue(compositeIntake.intakeForwardCommand());
+
+    // ── Key 6 : Intake reverse ────────────────────────────────────────────
+    // Held: runs rollers + conveyor in reverse
+    // Released: stops rollers
+    operatorKeyboard.button(6).whileTrue(compositeIntake.intakeReverseCommand());
+
+    // ── Key 7 : Indexer forward ───────────────────────────────────────────
+    // Held: runs indexer forward
+    // Released: stops indexer
+    operatorKeyboard.button(7).whileTrue(compositeIntake.indexerForwardCommand());
+
+    // ── Key 8 : Indexer reverse ───────────────────────────────────────────
+    // Held: runs indexer in reverse
+    // Released: stops indexer
+    operatorKeyboard.button(8).whileTrue(compositeIntake.indexerReverseCommand());
   }
 
   /**
