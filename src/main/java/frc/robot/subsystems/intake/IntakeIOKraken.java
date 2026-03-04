@@ -71,9 +71,9 @@ public class IntakeIOKraken implements IntakeIO {
    * @param rollerCanId CAN ID for the roller leader motor
    * @param canbus CANivore bus name, or empty string for RIO CAN
    */
-  public IntakeIOKraken(int liftCanId, int rollerCanId, String canbus) {
-    liftMotor = new TalonFX(liftCanId, canbus);
-    rollerMotor = new TalonFX(rollerCanId, canbus);
+  public IntakeIOKraken(int liftCanId, int rollerCanId) {
+    liftMotor = new TalonFX(liftCanId);
+    rollerMotor = new TalonFX(rollerCanId);
 
     // ── Lift configuration ────────────────────────────────────────────────
     var liftCfg = new TalonFXConfiguration();
@@ -185,5 +185,11 @@ public class IntakeIOKraken implements IntakeIO {
                 .withMotorOutput(
                     new com.ctre.phoenix6.configs.MotorOutputConfigs()
                         .withNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast)));
+  }
+
+  @Override
+  public void stop() {
+    liftMotor.stopMotor();
+    rollerMotor.stopMotor();
   }
 }

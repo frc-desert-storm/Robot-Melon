@@ -63,16 +63,13 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser;
 
   private final Shooter shooter =
-      new Shooter(RobotBase.isReal() ? new ShooterIOKraken(15) : new ShooterIOSim(15));
+      new Shooter(RobotBase.isReal() ? new ShooterIOKraken(46) : new ShooterIOSim(15));
   private final Turret turret =
-      new Turret(RobotBase.isReal() ? new TurretIOKraken(14) : new TurretIOSim(14));
+      new Turret(RobotBase.isReal() ? new TurretIOKraken(43) : new TurretIOSim(14));
   private final Intake intake =
       new Intake(
           RobotBase.isReal()
-              ? new IntakeIOKraken(
-                  IntakeConstants.LIFT_CAN_ID,
-                  IntakeConstants.ROLLER_CAN_ID,
-                  Constants.CANIVORE_BUS)
+              ? new IntakeIOKraken(IntakeConstants.LIFT_CAN_ID, IntakeConstants.ROLLER_CAN_ID)
               : new IntakeIOSim());
   private final Indexer indexer =
       new Indexer(
@@ -80,7 +77,7 @@ public class RobotContainer {
               ? new IndexerIOKraken(
                   IndexerConstants.LEADER_CAN_ID,
                   IndexerConstants.FOLLOWER_CAN_ID,
-                  Constants.CANIVORE_BUS)
+                  IndexerConstants.FOLLOWER_2_CAN_ID)
               : new IndexerIOSim());
   private final CompositeIntakeSubsystem compositeIntake =
       new CompositeIntakeSubsystem(intake, indexer);
@@ -276,6 +273,8 @@ public class RobotContainer {
   public void stopMechanisms() {
     shooter.stop();
     turret.stop();
+    intake.stop();
+    indexer.stop();
     drive.stop();
   }
 }

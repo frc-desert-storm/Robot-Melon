@@ -26,6 +26,7 @@ public class IndexerIOKraken implements IndexerIO {
   // ── Hardware ─────────────────────────────────────────────────────────────
   private final TalonFX leaderMotor;
   private final TalonFX followerMotor;
+  private final TalonFX follower2Motor;
 
   // ── Control request ───────────────────────────────────────────────────────
   private final VoltageOut voltageRequest = new VoltageOut(0).withEnableFOC(true);
@@ -45,9 +46,10 @@ public class IndexerIOKraken implements IndexerIO {
    * @param followerCanId CAN ID for the indexer follower motor (direction will be flipped)
    * @param canbus CANivore bus name, or empty string for RIO CAN
    */
-  public IndexerIOKraken(int leaderCanId, int followerCanId, String canbus) {
-    leaderMotor = new TalonFX(leaderCanId, canbus);
-    followerMotor = new TalonFX(followerCanId, canbus);
+  public IndexerIOKraken(int leaderCanId, int followerCanId, int follower2CanId) {
+    leaderMotor = new TalonFX(leaderCanId);
+    followerMotor = new TalonFX(followerCanId);
+    follower2Motor = new TalonFX(follower2CanId);
 
     // ── Leader configuration ──────────────────────────────────────────────
     var leaderCfg = new TalonFXConfiguration();
@@ -68,8 +70,18 @@ public class IndexerIOKraken implements IndexerIO {
     followerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
     followerMotor.getConfigurator().apply(followerCfg);
 
+    // ── Follower2 configuration ────────────────────────────────────────────
+    var follower2Cfg = new TalonFXConfiguration();
+    follower2Cfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    follower2Cfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    follower2Cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    follower2Cfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    follower2Cfg.CurrentLimits.StatorCurrentLimitEnable = true;
+    follower2Motor.getConfigurator().apply(followerCfg);
+
     // Follower with direction flipped (oppose leader direction = true)
     followerMotor.setControl(new Follower(leaderCanId, MotorAlignmentValue.Opposed));
+    follower2Motor.setControl(new Follower(leaderCanId, MotorAlignmentValue.Aligned));
 
     // ── Status signal registration ────────────────────────────────────────
     leaderVelocity = leaderMotor.getVelocity();

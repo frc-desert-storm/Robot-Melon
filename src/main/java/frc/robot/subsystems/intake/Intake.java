@@ -103,6 +103,10 @@ public class Intake extends SubsystemBase {
     io.resetLiftEncoder();
   }
 
+  public void stop() {
+    io.stop();
+  }
+
   // =========================================================================
   // Getters
   // =========================================================================

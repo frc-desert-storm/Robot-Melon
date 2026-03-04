@@ -68,4 +68,6 @@ public interface IntakeIO {
 
   /** Enable or disable motor brake mode for the lift. */
   default void setLiftBrakeMode(boolean brake) {}
+
+  default void stop() {}
 }

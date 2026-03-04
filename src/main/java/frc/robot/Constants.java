@@ -18,8 +18,6 @@ public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
-  public static final String CANIVORE_BUS = "CANivore";
-
   public static final double turretRPMRight = 50;
   public static final double turretRPMLeft = -50;
   public static final double turretRightHardstopAngle = 120;
@@ -32,16 +30,16 @@ public final class Constants {
   public static final class IntakeConstants {
     private IntakeConstants() {}
 
-    public static final int LIFT_CAN_ID = 20;
-    public static final int ROLLER_CAN_ID = 21;
-    public static final int CONVEYOR_CAN_ID = 22;
+    public static final int LIFT_CAN_ID = 41;
+    public static final int ROLLER_CAN_ID = 42;
   }
 
   public static final class IndexerConstants {
     private IndexerConstants() {}
 
-    public static final int LEADER_CAN_ID = 30;
-    public static final int FOLLOWER_CAN_ID = 31;
+    public static final int LEADER_CAN_ID = 45;
+    public static final int FOLLOWER_CAN_ID = 48;
+    public static final int FOLLOWER_2_CAN_ID = 44;
   }
 
   public static final int OPERATOR_KEYBOARD_PORT = 2;
