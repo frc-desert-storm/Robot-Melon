@@ -66,13 +66,20 @@ public class CompositeIntakeSubsystem extends SubsystemBase {
    *
    * @return a command requiring both child subsystems
    */
-  public Command compositeForwardCommand() {
+  public Command compositeForwardCommandandLift() {
     return Commands.sequence(
         // Step 1: Deploy the arm (does not require the indexer subsystem)
         Commands.runOnce(intake::lowerIntake, intake),
         // Step 2: Wait for the arm to reach the deployed position
         Commands.waitUntil(() -> intake.isLiftAtTarget(0.75)),
         // Step 3: Run intake rollers + indexer in parallel until interrupted
+        Commands.parallel(
+            Commands.startEnd(intake::runRollersForward, intake::stopRollers, intake),
+            Commands.startEnd(indexer::setVelocityRPM, indexer::stop, indexer)));
+  }
+
+  public Command compositeForwardCommand() {
+    return Commands.sequence(
         Commands.parallel(
             Commands.startEnd(intake::runRollersForward, intake::stopRollers, intake),
             Commands.startEnd(indexer::runForward, indexer::stop, indexer)));

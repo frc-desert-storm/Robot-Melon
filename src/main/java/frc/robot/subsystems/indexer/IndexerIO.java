@@ -25,6 +25,8 @@ public interface IndexerIO {
     // Follower monitoring
     public double followerCurrentAmps = 0.0;
     public double followerTempCelsius = 0.0;
+
+    public double setpointRPM = 0.0;
   }
 
   /** Update logged inputs. Called every robot loop. */
@@ -36,4 +38,6 @@ public interface IndexerIO {
    * @param volts Voltage to apply, positive = toward-shooter direction.
    */
   default void setVoltage(double volts) {}
+
+  default void setVelocityRPM(double rpm) {}
 }

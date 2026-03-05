@@ -48,4 +48,9 @@ public class IndexerIOSim implements IndexerIO {
   public void setVoltage(double volts) {
     appliedVolts = volts;
   }
+
+  @Override
+  public void setVelocityRPM(double rpm) {
+    // TODO: Code the setVelocityRPM sim method for the indexer
+  }
 }

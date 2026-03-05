@@ -75,9 +75,9 @@ public class RobotContainer {
       new Indexer(
           RobotBase.isReal()
               ? new IndexerIOKraken(
-                  IndexerConstants.LEADER_CAN_ID,
-                  IndexerConstants.FOLLOWER_CAN_ID,
-                  IndexerConstants.FOLLOWER_2_CAN_ID)
+                  IndexerConstants.LEFT_ROLLER_ID,
+                  IndexerConstants.RIGHT_ROLLER_ID,
+                  IndexerConstants.INDEXER_ID)
               : new IndexerIOSim());
   private final CompositeIntakeSubsystem compositeIntake =
       new CompositeIntakeSubsystem(intake, indexer);

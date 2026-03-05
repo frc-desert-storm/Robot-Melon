@@ -34,10 +34,10 @@ public class Intake extends SubsystemBase {
 
   // ── Roller voltages ─────────────────────────────────────────
   /** Voltage applied to rollers during normal intaking. */
-  public static final double ROLLER_INTAKE_VOLTS = 10.0;
+  public static final double ROLLER_INTAKE_VOLTS = 14.0;
 
   /** Voltage applied to rollers to eject game pieces. */
-  public static final double ROLLER_EJECT_VOLTS = -10.0;
+  public static final double ROLLER_EJECT_VOLTS = -14.0;
 
   // ── IO layer ─────────────────────────────────────────────────────────────
   private final IntakeIO io;

@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -24,9 +25,9 @@ import edu.wpi.first.units.measure.Voltage;
 public class IndexerIOKraken implements IndexerIO {
 
   // ── Hardware ─────────────────────────────────────────────────────────────
-  private final TalonFX leaderMotor;
-  private final TalonFX followerMotor;
-  private final TalonFX follower2Motor;
+  private final TalonFX leftRollerMotor;
+  private final TalonFX rightRollerMotor;
+  private final TalonFX indexerMotor;
 
   // ── Control request ───────────────────────────────────────────────────────
   private final VoltageOut voltageRequest = new VoltageOut(0).withEnableFOC(true);
@@ -39,57 +40,69 @@ public class IndexerIOKraken implements IndexerIO {
   private final StatusSignal<Current> followerCurrent;
   private final StatusSignal<Temperature> followerTemp;
 
+  private double setpointRPM = 0;
+
+  private final VelocityVoltage velocityReq = new VelocityVoltage(0).withEnableFOC(true);
+
   /**
    * Constructs the TalonFX indexer IO.
    *
-   * @param leaderCanId CAN ID for the indexer leader motor
-   * @param followerCanId CAN ID for the indexer follower motor (direction will be flipped)
+   * @param leftRollerMotorId CAN ID for the indexer leader motor
+   * @param rightRollerMotorId CAN ID for the indexer follower motor (direction will be flipped)
    * @param canbus CANivore bus name, or empty string for RIO CAN
    */
-  public IndexerIOKraken(int leaderCanId, int followerCanId, int follower2CanId) {
-    leaderMotor = new TalonFX(leaderCanId);
-    followerMotor = new TalonFX(followerCanId);
-    follower2Motor = new TalonFX(follower2CanId);
+  public IndexerIOKraken(int leftRollerMotorId, int rightRollerMotorId, int indexerId) {
+    leftRollerMotor = new TalonFX(leftRollerMotorId);
+    rightRollerMotor = new TalonFX(rightRollerMotorId);
+    indexerMotor = new TalonFX(indexerId);
 
     // ── Leader configuration ──────────────────────────────────────────────
-    var leaderCfg = new TalonFXConfiguration();
-    leaderCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    leaderCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    leaderCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
-    leaderCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    leaderCfg.CurrentLimits.StatorCurrentLimit = 60.0;
-    leaderCfg.CurrentLimits.StatorCurrentLimitEnable = true;
-    leaderMotor.getConfigurator().apply(leaderCfg);
+    var leftRollerCfg = new TalonFXConfiguration();
+    leftRollerCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    leftRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    leftRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    leftRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    leftRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    leftRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
+    leftRollerCfg.Slot0.kP = 8.0;
+
+    leftRollerMotor.getConfigurator().apply(leftRollerCfg);
     // ── Follower configuration ────────────────────────────────────────────
-    var followerCfg = new TalonFXConfiguration();
-    followerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    followerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
-    followerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    followerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
-    followerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
-    followerMotor.getConfigurator().apply(followerCfg);
+    var rightRollerCfg = new TalonFXConfiguration();
+    rightRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    rightRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    rightRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    rightRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    rightRollerCfg.Slot0.kP = 8.0;
+
+    rightRollerMotor.getConfigurator().apply(rightRollerCfg);
 
     // ── Follower2 configuration ────────────────────────────────────────────
-    var follower2Cfg = new TalonFXConfiguration();
-    follower2Cfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    follower2Cfg.CurrentLimits.SupplyCurrentLimit = 40.0;
-    follower2Cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    follower2Cfg.CurrentLimits.StatorCurrentLimit = 60.0;
-    follower2Cfg.CurrentLimits.StatorCurrentLimitEnable = true;
-    follower2Motor.getConfigurator().apply(followerCfg);
+    var indexerCfg = new TalonFXConfiguration();
+    indexerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    indexerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    indexerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    indexerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    indexerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    indexerCfg.Slot0.kP = 8.0;
+
+    indexerMotor.getConfigurator().apply(rightRollerCfg);
 
     // Follower with direction flipped (oppose leader direction = true)
-    followerMotor.setControl(new Follower(leaderCanId, MotorAlignmentValue.Opposed));
-    follower2Motor.setControl(new Follower(leaderCanId, MotorAlignmentValue.Aligned));
+    rightRollerMotor.setControl(new Follower(leftRollerMotorId, MotorAlignmentValue.Opposed));
+    indexerMotor.setControl(new Follower(leftRollerMotorId, MotorAlignmentValue.Aligned));
 
     // ── Status signal registration ────────────────────────────────────────
-    leaderVelocity = leaderMotor.getVelocity();
-    leaderAppliedVolts = leaderMotor.getMotorVoltage();
-    leaderCurrent = leaderMotor.getSupplyCurrent();
-    leaderTemp = leaderMotor.getDeviceTemp();
-    followerCurrent = followerMotor.getSupplyCurrent();
-    followerTemp = followerMotor.getDeviceTemp();
+    leaderVelocity = leftRollerMotor.getVelocity();
+    leaderAppliedVolts = leftRollerMotor.getMotorVoltage();
+    leaderCurrent = leftRollerMotor.getSupplyCurrent();
+    leaderTemp = leftRollerMotor.getDeviceTemp();
+    followerCurrent = rightRollerMotor.getSupplyCurrent();
+    followerTemp = rightRollerMotor.getDeviceTemp();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -100,8 +113,8 @@ public class IndexerIOKraken implements IndexerIO {
         followerCurrent,
         followerTemp);
 
-    leaderMotor.optimizeBusUtilization();
-    followerMotor.optimizeBusUtilization();
+    leftRollerMotor.optimizeBusUtilization();
+    rightRollerMotor.optimizeBusUtilization();
   }
 
   @Override
@@ -118,11 +131,19 @@ public class IndexerIOKraken implements IndexerIO {
     inputs.leaderTempCelsius = leaderTemp.getValueAsDouble();
     inputs.followerCurrentAmps = followerCurrent.getValueAsDouble();
     inputs.followerTempCelsius = followerTemp.getValueAsDouble();
+
+    inputs.setpointRPM = setpointRPM;
   }
 
   @Override
   public void setVoltage(double volts) {
-    leaderMotor.setControl(voltageRequest.withOutput(volts));
+    leftRollerMotor.setControl(voltageRequest.withOutput(volts));
     // Follower automatically opposes the leader's direction via hardware Follower control
+  }
+
+  @Override
+  public void setVelocityRPM(double rpm) {
+    setpointRPM = rpm;
+    leftRollerMotor.setControl(velocityReq.withVelocity(rpm / 60.0));
   }
 }

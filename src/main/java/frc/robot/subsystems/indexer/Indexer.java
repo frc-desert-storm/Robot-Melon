@@ -13,12 +13,13 @@ import org.littletonrobotics.junction.Logger;
  */
 public class Indexer extends SubsystemBase {
 
-  // ── Voltage constants ────────────────────────────────────────────────────
-  /** Voltage applied while feeding fuel toward the shooter. */
-  public static final double FEED_VOLTS = 10.0;
+  // Voltage constants for spinning and unjamming the indexer
+  public static final double FEED_VOLTS = 5.0;
+  public static final double REVERSE_VOLTS = -2.0;
 
-  /** Voltage applied while reversing the indexer (e.g., un-jamming). */
-  public static final double REVERSE_VOLTS = -10.0;
+  //
+  public static final double FEED_RPM = 3000;
+  public static final double REVERSE_RPM = -3000;
 
   // ── IO layer ─────────────────────────────────────────────────────────────
   private final IndexerIO io;
@@ -63,6 +64,10 @@ public class Indexer extends SubsystemBase {
 
   public double getVelocityRpm() {
     return inputs.leaderVelocityRpm;
+  }
+
+  public void setVelocityRPM() {
+    io.setVelocityRPM(FEED_RPM);
   }
 
   // =========================================================================

@@ -24,8 +24,8 @@ public final class Constants {
   public static final double turretLeftHardstopAngle = -120;
   public static final double turretAngleTolerance = 25;
 
-  public static double shooterForwardRPM = 2000;
-  public static double shooterBackwardRPM = -2000;
+  public static double shooterForwardRPM = 10000;
+  public static double shooterBackwardRPM = -10000;
 
   public static final class IntakeConstants {
     private IntakeConstants() {}
@@ -37,9 +37,9 @@ public final class Constants {
   public static final class IndexerConstants {
     private IndexerConstants() {}
 
-    public static final int LEADER_CAN_ID = 45;
-    public static final int FOLLOWER_CAN_ID = 48;
-    public static final int FOLLOWER_2_CAN_ID = 44;
+    public static final int LEFT_ROLLER_ID = 45;
+    public static final int RIGHT_ROLLER_ID = 48;
+    public static final int INDEXER_ID = 44;
   }
 
   public static final int OPERATOR_KEYBOARD_PORT = 2;
