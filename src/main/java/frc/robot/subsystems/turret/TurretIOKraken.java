@@ -82,7 +82,7 @@ public class TurretIOKraken implements TurretIO {
                     .withReverseSoftLimitEnable(true)
                     .withReverseSoftLimitThreshold(MIN_TURN_ANGLE))
             .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(TURN_TO_TURRET_RATIO));
-    
+
     hoodConfig =
         new TalonFXConfiguration()
             .withSlot0(HOOD_GAINS)

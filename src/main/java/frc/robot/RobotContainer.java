@@ -59,7 +59,7 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-  
+
   private final Intake intake =
       new Intake(
           RobotBase.isReal()
