@@ -91,11 +91,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        turret =
-            new Turret(
-                new TurretIOKraken(),
-                drive::getPose,
-                drive::getChassisSpeeds);
+        turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -124,11 +120,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        turret =
-            new Turret(
-                new TurretIOSim(),
-                drive::getPose,
-                drive::getChassisSpeeds);
+        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
         break;
 
       default:
@@ -140,11 +132,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        turret =
-            new Turret(
-                new TurretIO() {},
-                drive::getPose,
-                drive::getChassisSpeeds);
+        turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
         break;
     }
 
