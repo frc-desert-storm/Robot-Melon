@@ -1,108 +1,397 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems.turret;
 
-import edu.wpi.first.wpilibj.Timer;
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static frc.robot.Constants.TurretConstants.*;
+
+import com.pathplanner.lib.util.FlippingUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.Mode;
+import frc.robot.Robot;
+import frc.robot.subsystems.turret.TurretCalculator.ShotData;
+import frc.robot.util.LoggedTunableNumber;
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-// import java.io.Console;
-
 public class Turret extends SubsystemBase {
-
   private final TurretIO io;
-  private final TurretIOInputsAutoLogged inputs = new TurretIOInputsAutoLogged();
+  private final TurretIOInputsAutoLogged inputs;
+  private final Supplier<Pose2d> poseSupplier;
+  private final Supplier<ChassisSpeeds> fieldSpeedsSupplier;
 
-  private final Timer readyTimer = new Timer();
+  @AutoLogOutput
+  Translation3d currentTarget =
+      DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+          ? FieldConstants.HUB_BLUE
+          : FieldConstants.HUB_RED;
 
-  private final SysIdRoutine sysIdRoutine;
+  @AutoLogOutput private TurretGoal goal = TurretGoal.OFF;
 
-  public Turret(TurretIO io) {
+  private final TurretVisualizer turretVisualizer;
+
+  private final Trigger hoodStalledTrigger;
+
+  private final LoggedTunableNumber turnKP =
+      new LoggedTunableNumber("Turret/Turn/kP", TURN_GAINS.kP);
+  private final LoggedTunableNumber turnKD =
+      new LoggedTunableNumber("Turret/Turn/kD", TURN_GAINS.kD);
+  private final LoggedTunableNumber turnKV =
+      new LoggedTunableNumber("Turret/Turn/kV", TURN_GAINS.kV);
+  private final LoggedTunableNumber turnKS =
+      new LoggedTunableNumber("Turret/Turn/kS", TURN_GAINS.kS);
+  private final LoggedTunableNumber hoodKP =
+      new LoggedTunableNumber("Turret/Hood/kP", HOOD_GAINS.kP);
+  private final LoggedTunableNumber hoodKD =
+      new LoggedTunableNumber("Turret/Hood/kD", HOOD_GAINS.kD);
+  private final LoggedTunableNumber hoodKS =
+      new LoggedTunableNumber("Turret/Hood/kS", HOOD_GAINS.kS);
+  private final LoggedTunableNumber flywheelKP =
+      new LoggedTunableNumber("Turret/Flywheel/kP", FLYWHEEL_GAINS.kP);
+  private final LoggedTunableNumber flywheelKD =
+      new LoggedTunableNumber("Turret/Flywheel/kD", FLYWHEEL_GAINS.kD);
+  private final LoggedTunableNumber flywheelKV =
+      new LoggedTunableNumber("Turret/Flywheel/kV", FLYWHEEL_GAINS.kV);
+  private final LoggedTunableNumber flywheelKS =
+      new LoggedTunableNumber("Turret/Flywheel/kS", FLYWHEEL_GAINS.kS);
+
+  private final LoggedTunableNumber tuningFlywheelSpeed =
+      new LoggedTunableNumber("Turret/Tuning/FlywheelRPM", 0);
+  private final LoggedTunableNumber tuningHoodAngle =
+      new LoggedTunableNumber("Turret/Tuning/HoodAngleDegrees", MIN_HOOD_ANGLE.in(Degrees));
+
+  public final Trigger turnaroundZoneMaxTrigger =
+      new Trigger(this::inTurnaroundZoneMax).debounce(0.05);
+  public final Trigger turnaroundZoneMinTrigger =
+      new Trigger(this::inTurnaroundZoneMin).debounce(0.05);
+
+  @AutoLogOutput private MutAngularVelocity flywheelFudgeFactor = RPM.of(0).mutableCopy();
+
+  private final Alert flywheelDisconnectedAlert =
+      new Alert("Turret Flywheel Motor Disconnected!", AlertType.kError);
+  private final Alert hoodDisconnectedAlert =
+      new Alert("Turret Hood Motor Disconnected!", AlertType.kError);
+  private final Alert turnDisconnectedAlert =
+      new Alert("Turret Turn Motor Disconnected!", AlertType.kError);
+
+  public Turret(
+      TurretIO io, Supplier<Pose2d> poseSupplier, Supplier<ChassisSpeeds> fieldSpeedsSupplier) {
     this.io = io;
+    this.inputs = new TurretIOInputsAutoLogged();
+    this.poseSupplier = poseSupplier;
+    this.fieldSpeedsSupplier = fieldSpeedsSupplier;
 
-    sysIdRoutine =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(),
-            new SysIdRoutine.Mechanism(
-                (volts) -> io.setVoltage(volts.in(edu.wpi.first.units.Units.Volts)), null, this));
+    io.zeroHoodPosition();
+    setTarget(FieldConstants.HUB_BLUE);
+
+    hoodStalledTrigger =
+        new Trigger(
+            () ->
+                inputs.hoodCurrent.abs(Amps) >= HOOD_STALL_CURRENT.abs(Amps)
+                    && inputs.hoodVelocity.abs(RadiansPerSecond)
+                        <= HOOD_STALL_ANGULAR_VELOCITY.abs(RadiansPerSecond));
+
+    turretVisualizer =
+        new TurretVisualizer(
+            () ->
+                new Pose3d(
+                        poseSupplier
+                            .get()
+                            .rotateAround(
+                                poseSupplier.get().getTranslation(),
+                                new Rotation2d(inputs.turnPosition)))
+                    .transformBy(ROBOT_TO_TURRET_TRANSFORM),
+            fieldSpeedsSupplier);
+
+    SmartDashboard.putData("Overrides/Turret Disable", disable());
+    SmartDashboard.putData("Overrides/Turret Manual", manualOverride());
+    SmartDashboard.putData("Turret/Fudge Up", increaseFudgeFactor());
+    SmartDashboard.putData("Turret/Fudge Down", decreaseFudgeFactor());
+  }
+
+  public Command setGoal(TurretGoal goal) {
+    return this.runOnce(
+            () -> {
+              if (this.goal == TurretGoal.DISABLED || this.goal == TurretGoal.MANUAL_OVERRIDE) {
+                return;
+              }
+              this.goal = goal;
+              switch (goal) {
+                case SCORING:
+                  setTarget(FieldConstants.HUB_BLUE);
+                  break;
+                case PASSING:
+                  setTarget(getPassingTarget(poseSupplier.get()));
+                  break;
+                case IDLE:
+                  io.stopFlywheel();
+                  io.stopHood();
+                  io.stopTurn();
+                  break;
+                case TUNING:
+                  setTarget(FieldConstants.HUB_BLUE);
+                  break;
+                case OFF:
+                  io.stopFlywheel();
+                  io.stopHood();
+                  io.stopTurn();
+                  break;
+                case DISABLED:
+                  io.stopFlywheel();
+                  io.stopHood();
+                  io.stopTurn();
+                  break;
+                case MANUAL_OVERRIDE:
+                  io.stopFlywheel();
+                  io.setHoodAngle(MIN_HOOD_ANGLE);
+                  io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
+                  break;
+              }
+            })
+        .withName("Set Turret Goal");
+  }
+
+  private Command increaseFudgeFactor() {
+    return Commands.runOnce(() -> this.flywheelFudgeFactor.mut_plus(FLYWHEEL_FUDGE_AMOUNT))
+        .withName("Fudge Up");
+  }
+
+  private Command decreaseFudgeFactor() {
+    return Commands.runOnce(() -> this.flywheelFudgeFactor.mut_minus(FLYWHEEL_FUDGE_AMOUNT))
+        .withName("Fudge Down");
+  }
+
+  public TurretGoal getGoal() {
+    return goal;
+  }
+
+  public Command setTurnPosition(Angle position) {
+    return this.runOnce(() -> io.setTurnSetpoint(position, RadiansPerSecond.zero()));
+  }
+
+  public Command setHoodPosition(Angle angle) {
+    return this.runOnce(() -> io.setHoodAngle(angle));
+  }
+
+  public Command setFlywheelSpeed(AngularVelocity speed) {
+    return this.runOnce(() -> io.setFlywheelSpeed(speed));
+  }
+
+  public void setTarget(Translation3d target) {
+    currentTarget = target;
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+      Translation2d flipped = FlippingUtil.flipFieldPosition(target.toTranslation2d());
+      currentTarget = new Translation3d(flipped.getX(), flipped.getY(), target.getZ());
+    }
+  }
+
+  private Translation3d getPassingTarget(Pose2d pose) {
+    boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+    boolean onBlueLeftSide = poseSupplier.get().getMeasureY().gt(FieldConstants.FIELD_WIDTH.div(2));
+
+    return isBlue == onBlueLeftSide ? PASSING_SPOT_LEFT : PASSING_SPOT_RIGHT;
+  }
+
+  private boolean inTurnaroundZoneMax() {
+    return inputs.turnPosition.isNear(MAX_TURN_ANGLE, TURNAROUND_ZONE);
+  }
+
+  private boolean inTurnaroundZoneMin() {
+    return inputs.turnPosition.isNear(MIN_TURN_ANGLE, TURNAROUND_ZONE);
+  }
+
+  public Command disable() {
+    return setGoal(TurretGoal.DISABLED)
+        .andThen(Commands.idle())
+        .finallyDo(() -> goal = TurretGoal.OFF)
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        .withName("Disable Turret");
+  }
+
+  public Command manualOverride() {
+    return setGoal(TurretGoal.MANUAL_OVERRIDE)
+        .andThen(Commands.idle())
+        .finallyDo(
+            () -> {
+              if (goal != TurretGoal.DISABLED) {
+                goal = TurretGoal.OFF;
+              }
+            })
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        .withName("Turret Manual Override");
+  }
+
+  public Command manualScore() {
+    return Commands.startEnd(
+            () -> {
+              io.setFlywheelSpeed(FLYWHEEL_SCORING_OVERRIDE.plus(flywheelFudgeFactor));
+              io.setHoodAngle(HOOD_SCORING_OVERRIDE);
+              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
+            },
+            () -> {
+              io.stopFlywheel();
+              io.setHoodAngle(Radians.zero());
+              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
+            })
+        .onlyIf(() -> goal == TurretGoal.MANUAL_OVERRIDE)
+        .withName("Turret Manual Score");
+  }
+
+  public Command manualPass() {
+    return Commands.startEnd(
+            () -> {
+              io.setFlywheelSpeed(FLYWHEEL_PASSING_OVERRIDE.plus(flywheelFudgeFactor));
+              io.setHoodAngle(HOOD_PASSING_OVERRIDE);
+              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
+            },
+            () -> {
+              io.stopFlywheel();
+              io.setHoodAngle(Radians.zero());
+              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
+            })
+        .onlyIf(() -> goal == TurretGoal.MANUAL_OVERRIDE)
+        .withName("Turret Manual Pass");
   }
 
   @Override
   public void periodic() {
-
-    io.periodic();
-
     io.updateInputs(inputs);
-
-    if (inputs.atSetpoint) {
-      if (!readyTimer.isRunning()) {
-        readyTimer.restart();
-      }
-    } else {
-      readyTimer.stop();
-      readyTimer.reset();
-    }
-
-    inputs.ready = readyTimer.hasElapsed(TurretIO.READY_TIME_SEC);
-
-    // Calls logic for left/right movement continuously
-    if (inputs.goingRight) rotateRight(inputs.velocitySetpointRPM);
-    else rotateLeft(inputs.velocitySetpointRPM);
-
     Logger.processInputs("Turret", inputs);
-  }
 
-  public void rotateRight(double rpm) {
-    if ((inputs.hardstopDetected && inputs.goingRight)) {
-      io.setCurrentAngleDegrees(Constants.turretRightHardstopAngle);
-      stop();
-      rpm = 0;
+    Pose2d pose = poseSupplier.get();
+
+    switch (goal) {
+      case SCORING:
+        calculateShot(pose);
+        break;
+      case PASSING:
+        calculateShot(pose);
+        setTarget(getPassingTarget(pose));
+        break;
+      case TUNING:
+        io.setFlywheelSpeed(RPM.of(tuningFlywheelSpeed.get()));
+        io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
+        io.setTurnSetpoint(
+            TurretCalculator.calculateAzimuthAngle(pose, currentTarget, inputs.turnPosition),
+            RPM.zero());
+        break;
+      default:
+        break;
     }
 
-    if (inputs.jamDetected
-        || inputs.currentAngle
-            >= Constants.turretRightHardstopAngle - Constants.turretAngleTolerance) {
-      rpm = 0;
-    } // else if (inputs.currentAngle
-    //     >= Constants.turretRightHardstopAngle - Constants.turretRPMReduceAngle) rpm /= 5;
+    Logger.recordOutput(
+        "Turret/Distance To Target", TurretCalculator.getDistanceToTarget(pose, currentTarget));
 
-    setRPM(rpm);
+    turretVisualizer.update3dPose(inputs.turnPosition, inputs.hoodPosition);
+    updateTunables();
+
+    flywheelDisconnectedAlert.set(
+        !inputs.flywheelMotorConnected && Constants.currentMode != Mode.SIM);
+    hoodDisconnectedAlert.set(!inputs.hoodMotorConnected && Constants.currentMode != Mode.SIM);
+    turnDisconnectedAlert.set(!inputs.turnMotorConnected && Constants.currentMode != Mode.SIM);
   }
 
-  public void rotateLeft(double rpm) {
-    if ((inputs.hardstopDetected && !inputs.goingRight)) {
-      io.setCurrentAngleDegrees(Constants.turretLeftHardstopAngle);
-      stop();
-      rpm = 0;
+  private void calculateShot(Pose2d robotPose) {
+    ChassisSpeeds fieldSpeeds = fieldSpeedsSupplier.get();
+
+    ShotData calculatedShot;
+    if (Robot.isReal()) {
+      calculatedShot =
+          TurretCalculator.iterativeMovingShotFromMap(
+              robotPose, fieldSpeeds, currentTarget, LOOKAHEAD_ITERATIONS);
+    } else {
+      calculatedShot =
+          TurretCalculator.iterativeMovingShotFromFunnelClearance(
+              robotPose, fieldSpeeds, currentTarget, LOOKAHEAD_ITERATIONS);
+    }
+    Angle azimuthAngle =
+        TurretCalculator.calculateAzimuthAngle(
+            robotPose, calculatedShot.target(), inputs.turnPosition);
+    AngularVelocity azimuthVelocity = RadiansPerSecond.of(-fieldSpeeds.omegaRadiansPerSecond);
+    io.setTurnSetpoint(azimuthAngle, azimuthVelocity);
+    io.setHoodAngle(calculatedShot.getHoodAngle());
+    io.setFlywheelSpeed(calculatedShot.getAngularExitVelocity().plus(flywheelFudgeFactor));
+
+    Logger.recordOutput("Turret/Shot", calculatedShot);
+  }
+
+  public Command zeroHoodSequence() {
+    return Commands.sequence(
+        this.runOnce(() -> io.setHoodOut(HOOD_ZEROING_VOLTAGE)),
+        Commands.waitSeconds(0.1),
+        Commands.waitUntil(hoodStalledTrigger::getAsBoolean),
+        this.runOnce(io::stopHood),
+        Commands.waitSeconds(0.2),
+        this.runOnce(
+            () -> {
+              io.zeroHoodPosition();
+              io.setHoodAngle(MIN_HOOD_ANGLE);
+            }));
+  }
+
+  private void updateTunables() {
+    if (turnKP.hasChanged(hashCode())
+        || turnKD.hasChanged(hashCode())
+        || turnKV.hasChanged(hashCode())
+        || turnKS.hasChanged(hashCode())) {
+      io.setTurnPID(turnKP.get(), turnKD.get(), turnKV.get(), turnKS.get());
     }
 
-    if (inputs.jamDetected
-        || inputs.currentAngle
-            <= Constants.turretLeftHardstopAngle + Constants.turretAngleTolerance) {
-      rpm = 0;
-    } // else if (inputs.currentAngle
-    //  <= Constants.turretRightHardstopAngle + Constants.turretRPMReduceAngle) rpm /= 5;
+    if (hoodKP.hasChanged(hashCode())
+        || hoodKD.hasChanged(hashCode())
+        || hoodKS.hasChanged(hashCode())) {
+      io.setHoodPID(hoodKP.get(), hoodKD.get(), hoodKS.get());
+    }
 
-    setRPM(rpm);
+    if (flywheelKP.hasChanged(hashCode())
+        || flywheelKD.hasChanged(hashCode())
+        || flywheelKV.hasChanged(hashCode())
+        || flywheelKS.hasChanged(hashCode())) {
+      io.setFlywheelPID(flywheelKP.get(), flywheelKD.get(), flywheelKV.get(), flywheelKS.get());
+    }
   }
 
-  private void setRPM(double rpm) {
-    io.setVelocityRPM(rpm);
+  @Override
+  public void simulationPeriodic() {
+    turretVisualizer.updateFuel(
+        TurretCalculator.angularToLinearVelocity(inputs.flywheelSpeed, FLYWHEEL_RADIUS),
+        inputs.hoodPosition);
   }
 
-  public void stop() {
-    io.stop();
-  }
-
-  public boolean isReady() {
-    return inputs.ready;
-  }
-
-  public boolean jamDetected() {
-    return inputs.hardstopDetected;
-  }
-
-  public SysIdRoutine getSysIdRoutine() {
-    return sysIdRoutine;
+  public enum TurretGoal {
+    SCORING,
+    PASSING,
+    IDLE,
+    TUNING,
+    OFF,
+    MANUAL_OVERRIDE,
+    DISABLED
   }
 }

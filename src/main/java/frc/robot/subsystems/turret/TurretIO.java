@@ -1,56 +1,74 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface TurretIO {
-
-  // ---- Constants ----
-  public static final double VELOCITY_TOLERANCE_RPM = 75.0;
-  public static final double READY_TIME_SEC = 0.15;
-  public static final double HARDSTOP_CURRENT_AMPS = 70.0;
-  public static final double JAM_CURRENT_AMPS = 80.0;
-
-  public static final double GEARED_INERTIA = 0.005;
-  public static final double MOTOR_REVOLUTIONS_PER_RADIAN = 1.0;
-  public static final double GEAR_RATIO = 28.125;
-
   @AutoLog
   public static class TurretIOInputs {
-    public double velocityRPM = 0.0;
-    public double velocitySetpointRPM = 0.0;
+    public boolean turnMotorConnected = false;
+    public Voltage turnAppliedVolts = Volts.of(0.0);
+    public Current turnCurrent = Amps.of(0.0);
+    public Current turnSupplyCurrent = Amps.of(0.0);
+    public Angle turnPosition = Radians.of(0.0);
+    public Angle turnSetpoint = Radians.of(0.0);
+    public AngularVelocity turnVelocity = RadiansPerSecond.of(0.0);
 
-    public double currentAngle = 0.0;
-    public double angleSetpointDegrees = 0.0;
+    public boolean hoodMotorConnected = false;
+    public Voltage hoodAppliedVolts = Volts.of(0.0);
+    public Current hoodCurrent = Amps.of(0.0);
+    public Current hoodSupplyCurrent = Amps.of(0.0);
+    public Angle hoodPosition = Radians.of(0.0);
+    public Angle hoodSetpoint = Radians.of(0.0);
+    public AngularVelocity hoodVelocity = RadiansPerSecond.of(0.0);
 
-    public double appliedVolts = 0.0;
-    public double supplyCurrentAmps = 0.0;
-    public double torqueCurrentAmps = 0.0;
-
-    public double motorTempCelsius = 0.0;
-
-    public boolean atSetpoint = false;
-    public boolean ready = false;
-    public boolean hardstopDetected = false;
-    public boolean goingRight = false;
-    public boolean jamDetected = false;
+    public boolean flywheelMotorConnected = false;
+    public Voltage flywheelAppliedVolts = Volts.of(0.0);
+    public Current flywheelCurrent = Amps.of(0.0);
+    public Current flywheelSupplyCurrent = Amps.of(0.0);
+    public AngularVelocity flywheelSpeed = RadiansPerSecond.of(0.0);
+    public AngularAcceleration flywheelAccel = RadiansPerSecondPerSecond.of(0.0);
+    public AngularVelocity flywheelSetpointSpeed = RadiansPerSecond.of(0.0);
+    public AngularAcceleration flywheelSetpointAccel = RadiansPerSecondPerSecond.of(0.0);
   }
 
-  void updateInputs(TurretIOInputs inputs);
+  public default void updateInputs(TurretIOInputs inputs) {}
 
-  // void rotateRight(double rpm);
+  public default void setTurnSetpoint(Angle position, AngularVelocity velocity) {}
 
-  // void rotateLeft(double rpm);
+  public default void setHoodAngle(Angle angle) {}
 
-  // void rotateToTargetpoint(double degrees);
+  public default void setHoodOut(Voltage out) {}
 
-  void setCurrentAngleDegrees(double degrees);
+  public default void setFlywheelSpeed(AngularVelocity speed) {}
 
-  void setVelocityRPM(double rpm);
+  public default void stopTurn() {}
 
-  void setVoltage(double volts);
+  public default void stopHood() {}
 
-  void stop();
+  public default void stopFlywheel() {}
 
-  default void periodic() {}
-  ;
+  public default void resetTurnEncoder() {}
+
+  public default void zeroHoodPosition() {}
+
+  public default void setTurnPID(double kP, double kD, double kV, double kS) {}
+
+  public default void setHoodPID(double kP, double kD, double kS) {}
+
+  public default void setFlywheelPID(double kP, double kD, double kV, double kS) {}
 }

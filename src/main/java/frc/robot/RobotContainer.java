@@ -17,13 +17,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.ShooterRPMCommand;
-import frc.robot.commands.TurretRPMCommand;
+import frc.robot.commands.TurretStateCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.composite.CompositeIntakeSubsystem;
 import frc.robot.subsystems.drive.Drive;
@@ -38,7 +36,6 @@ import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
-import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
@@ -53,6 +50,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Turret turret;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -61,11 +59,7 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-
-  private final Shooter shooter =
-      new Shooter(RobotBase.isReal() ? new ShooterIOKraken(46) : new ShooterIOSim(15));
-  private final Turret turret =
-      new Turret(RobotBase.isReal() ? new TurretIOKraken(43) : new TurretIOSim(14));
+  
   private final Intake intake =
       new Intake(
           RobotBase.isReal()
@@ -96,7 +90,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-
+        turret =
+            new Turret(
+                RobotBase.isReal() ? new TurretIOKraken() : new TurretIOSim(),
+                drive::getPose,
+                drive::getChassisSpeeds);
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -125,6 +123,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+        turret =
+            new Turret(
+                RobotBase.isReal() ? new TurretIOKraken() : new TurretIOSim(),
+                drive::getPose,
+                drive::getChassisSpeeds);
         break;
 
       default:
@@ -136,6 +139,11 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        turret =
+            new Turret(
+                RobotBase.isReal() ? new TurretIOKraken() : new TurretIOSim(),
+                drive::getPose,
+                drive::getChassisSpeeds);
         break;
     }
 
@@ -202,17 +210,7 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    Trigger shooterForwardOnly = controller.rightBumper().and(controller.leftBumper().negate());
-    Trigger shooterReverseOnly = controller.leftBumper().and(controller.rightBumper().negate());
-
-    shooterForwardOnly.whileTrue(new ShooterRPMCommand(shooter, true));
-    shooterReverseOnly.whileTrue(new ShooterRPMCommand(shooter, false));
-
-    Trigger turretRightOnly = controller.povRight().and(controller.povLeft().negate());
-    Trigger turretLeftOnly = controller.povLeft().and(controller.povRight().negate());
-
-    turretRightOnly.whileTrue(new TurretRPMCommand(turret, true));
-    turretLeftOnly.whileTrue(new TurretRPMCommand(turret, false));
+    controller.rightBumper().whileTrue(new TurretStateCommand(turret, Turret.TurretGoal.TUNING));
   }
 
   private void configureOperatorBindings() {
@@ -271,8 +269,7 @@ public class RobotContainer {
   }
 
   public void stopMechanisms() {
-    shooter.stop();
-    turret.stop();
+    turret.setGoal(Turret.TurretGoal.DISABLED);
     intake.stop();
     indexer.stop();
     drive.stop();
