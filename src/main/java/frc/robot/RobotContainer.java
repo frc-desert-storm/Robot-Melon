@@ -37,6 +37,7 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -92,7 +93,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         turret =
             new Turret(
-                RobotBase.isReal() ? new TurretIOKraken() : new TurretIOSim(),
+                new TurretIOKraken(),
                 drive::getPose,
                 drive::getChassisSpeeds);
         // The ModuleIOTalonFXS implementation provides an example implementation for
@@ -125,7 +126,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         turret =
             new Turret(
-                RobotBase.isReal() ? new TurretIOKraken() : new TurretIOSim(),
+                new TurretIOSim(),
                 drive::getPose,
                 drive::getChassisSpeeds);
         break;
@@ -141,7 +142,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         turret =
             new Turret(
-                RobotBase.isReal() ? new TurretIOKraken() : new TurretIOSim(),
+                new TurretIO() {},
                 drive::getPose,
                 drive::getChassisSpeeds);
         break;
