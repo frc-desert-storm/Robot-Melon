@@ -198,12 +198,11 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
+    controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.SCORING));
     controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
   }
 
   private void configureOperatorBindings() {
-
     // ── Key 1 : Composite forward ─────────────────────────────────────────
     // Held: lowers arm → waits for arm → runs rollers + indexer forward
     // Released: stops rollers and indexer

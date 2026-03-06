@@ -33,6 +33,7 @@ import frc.robot.Constants.Mode;
 import frc.robot.Robot;
 import frc.robot.subsystems.turret.TurretCalculator.ShotData;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.PhoenixUtil;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -280,6 +281,8 @@ public class Turret extends SubsystemBase {
 
   @Override
   public void periodic() {
+    PhoenixUtil.refreshAll();
+
     io.updateInputs(inputs);
     Logger.processInputs("Turret", inputs);
 
@@ -294,11 +297,9 @@ public class Turret extends SubsystemBase {
         setTarget(getPassingTarget(pose));
         break;
       case TUNING:
-        io.setFlywheelSpeed(RPM.of(tuningFlywheelSpeed.get()));
+        io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get()));
         io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
-        io.setTurnSetpoint(
-            TurretCalculator.calculateAzimuthAngle(pose, currentTarget, inputs.turnPosition),
-            RPM.zero());
+        io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
         break;
       default:
         break;
