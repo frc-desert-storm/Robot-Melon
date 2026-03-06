@@ -135,10 +135,9 @@ public class Turret extends SubsystemBase {
   public Command setGoal(TurretGoal goal) {
     return this.runOnce(
             () -> {
-              //              if (this.goal == TurretGoal.DISABLED || this.goal ==
-              // TurretGoal.MANUAL_OVERRIDE) {
-              //                return;
-              //              }
+              if (this.goal == TurretGoal.DISABLED || this.goal == TurretGoal.MANUAL_OVERRIDE) {
+                return;
+              }
               this.goal = goal;
               switch (goal) {
                 case SCORING:
