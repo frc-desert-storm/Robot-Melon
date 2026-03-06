@@ -33,12 +33,13 @@ public class IntakeIOKraken implements IntakeIO {
   public static final double ROLLER_GEAR_RATIO = 1.0;
 
   // MotionMagic gains for lift (tune to robot)
-  private static final double LIFT_kP = 0.1;
-  private static final double LIFT_kI = 0.0;
-  private static final double LIFT_kD = 0.4;
+  private static final double LIFT_kP = 1.6;
+  private static final double LIFT_kI = 0.4;
+  private static final double LIFT_kD = 0.5;
   private static final double LIFT_kS = 0.25;
   private static final double LIFT_kV = 0.12;
   private static final double LIFT_kA = 0.01;
+  private static final double LIFT_kG = 1.0;
   private static final double LIFT_CRUISE_RPS = 80.0; // motor rotations per second
   private static final double LIFT_ACCEL_RPS2 = 160.0; // motor rotations per second²
   private static final double LIFT_JERK_RPS3 = 1600.0;
@@ -86,6 +87,7 @@ public class IntakeIOKraken implements IntakeIO {
     liftCfg.Slot0.kS = LIFT_kS;
     liftCfg.Slot0.kV = LIFT_kV;
     liftCfg.Slot0.kA = LIFT_kA;
+    liftCfg.Slot0.kG = LIFT_kG;
     liftCfg.MotionMagic.MotionMagicCruiseVelocity = LIFT_CRUISE_RPS;
     liftCfg.MotionMagic.MotionMagicAcceleration = LIFT_ACCEL_RPS2;
     liftCfg.MotionMagic.MotionMagicJerk = LIFT_JERK_RPS3;
@@ -104,6 +106,10 @@ public class IntakeIOKraken implements IntakeIO {
     rollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     rollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
     rollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    rollerCfg.Slot0.kP = 8.0;
+    rollerCfg.Slot0.kI = 0.2;
+
     rollerMotor.getConfigurator().apply(rollerCfg);
 
     // ── Status signal registration ────────────────────────────────────────

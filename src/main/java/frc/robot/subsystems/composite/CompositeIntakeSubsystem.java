@@ -119,6 +119,10 @@ public class CompositeIntakeSubsystem extends SubsystemBase {
     return intake.raiseCommand();
   }
 
+  public Command intakeZeroCommand() {
+    return intake.zeroLift();
+  }
+
   /**
    * Run intake rollers and conveyor forward only (indexer unaffected).
    *

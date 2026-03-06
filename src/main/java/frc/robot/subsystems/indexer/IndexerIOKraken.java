@@ -65,7 +65,8 @@ public class IndexerIOKraken implements IndexerIO {
     leftRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
     leftRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
-    leftRollerCfg.Slot0.kP = 8.0;
+    leftRollerCfg.Slot0.kP = 10.0;
+    leftRollerCfg.Slot0.kI = 0.2;
 
     leftRollerMotor.getConfigurator().apply(leftRollerCfg);
     // ── Follower configuration ────────────────────────────────────────────
@@ -76,7 +77,8 @@ public class IndexerIOKraken implements IndexerIO {
     rightRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
     rightRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
-    rightRollerCfg.Slot0.kP = 8.0;
+    rightRollerCfg.Slot0.kP = 10.0;
+    rightRollerCfg.Slot0.kI = 0.2;
 
     rightRollerMotor.getConfigurator().apply(rightRollerCfg);
 

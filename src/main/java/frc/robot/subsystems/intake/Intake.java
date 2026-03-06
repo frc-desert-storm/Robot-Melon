@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase {
 
   // ── Lift setpoints (mechanism rotations) ─────────────────────────────────
   /** Arm fully lowered – intake is outside the robot perimeter for ground pickup. */
-  public static final double LIFT_DOWN_POSITION_ROT = -12.0;
+  public static final double LIFT_DOWN_POSITION_ROT = -0.433;
 
   /** Arm fully raised – intake is stowed inside the frame perimeter. */
   public static final double LIFT_UP_POSITION_ROT = 0.0;
@@ -155,6 +155,10 @@ public class Intake extends SubsystemBase {
   /** Run rollers in reverse until interrupted, then stop. */
   public Command rollersReverseCommand() {
     return Commands.startEnd(this::runRollersReverse, this::stopRollers, this);
+  }
+
+  public Command zeroLift() {
+    return Commands.runOnce(this::resetLiftEncoder, this);
   }
 
   /**
