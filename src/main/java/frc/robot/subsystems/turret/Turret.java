@@ -4,11 +4,7 @@
 
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.TurretConstants.*;
 
 import com.pathplanner.lib.util.FlippingUtil;
@@ -139,9 +135,10 @@ public class Turret extends SubsystemBase {
   public Command setGoal(TurretGoal goal) {
     return this.runOnce(
             () -> {
-              if (this.goal == TurretGoal.DISABLED || this.goal == TurretGoal.MANUAL_OVERRIDE) {
-                return;
-              }
+              //              if (this.goal == TurretGoal.DISABLED || this.goal ==
+              // TurretGoal.MANUAL_OVERRIDE) {
+              //                return;
+              //              }
               this.goal = goal;
               switch (goal) {
                 case SCORING:
@@ -156,7 +153,9 @@ public class Turret extends SubsystemBase {
                   io.stopTurn();
                   break;
                 case TUNING:
-                  setTarget(FieldConstants.HUB_BLUE);
+                  io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get()));
+                  io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
+                  io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
                   break;
                 case OFF:
                   io.stopFlywheel();

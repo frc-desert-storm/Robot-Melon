@@ -21,7 +21,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.IndexerConstants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.TurretStateCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.composite.CompositeIntakeSubsystem;
 import frc.robot.subsystems.drive.Drive;
@@ -199,7 +198,8 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.rightBumper().whileTrue(new TurretStateCommand(turret, Turret.TurretGoal.TUNING));
+    controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
+    controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
   }
 
   private void configureOperatorBindings() {
@@ -258,7 +258,7 @@ public class RobotContainer {
   }
 
   public void stopMechanisms() {
-    turret.setGoal(Turret.TurretGoal.DISABLED);
+    turret.setGoal(Turret.TurretGoal.OFF);
     intake.stop();
     indexer.stop();
     drive.stop();

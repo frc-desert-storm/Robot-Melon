@@ -20,6 +20,7 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -95,7 +96,7 @@ public class TurretIOKraken implements TurretIO {
                     .withReverseSoftLimitEnable(false)
                     .withReverseSoftLimitThreshold(MIN_HOOD_ANGLE))
             .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(HOOD_MOTOR_RATIO));
-
+    hoodConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     flywheelConfig =
         new TalonFXConfiguration()
             .withSlot0(FLYWHEEL_GAINS)
