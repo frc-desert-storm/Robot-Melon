@@ -55,7 +55,7 @@ public final class Constants {
 
   public static class TurretConstants {
     public static final int TURN_ID = 43;
-    public static final int HOOD_ID = 47; // TODO this is wrong
+    public static final int HOOD_ID = 47;
     public static final int FLYWHEEL_ID = 46;
 
     public static final double TURN_TO_TURRET_RATIO =
