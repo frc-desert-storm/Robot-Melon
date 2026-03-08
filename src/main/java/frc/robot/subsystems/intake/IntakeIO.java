@@ -33,6 +33,8 @@ public interface IntakeIO {
     public double rollerAppliedVolts = 0.0;
     public double rollerCurrentAmps = 0.0;
     public double rollerTempCelsius = 0.0;
+    public double rollerRPM = 0.0;
+    public double rollerSetpointRPM = 0.0;
   }
 
   /** Update logged inputs. Called every robot loop. */
@@ -62,6 +64,8 @@ public interface IntakeIO {
    * @param volts Voltage to apply, positive = intake direction.
    */
   default void setRollerVoltage(double volts) {}
+
+  default void setRollerRPM(double rpm) {}
 
   /** Zero the lift encoder. Call after the arm reaches a known hard-stop. */
   default void resetLiftEncoder() {}

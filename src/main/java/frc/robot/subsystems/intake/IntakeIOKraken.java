@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -20,7 +21,6 @@ import edu.wpi.first.units.measure.Voltage;
  * <ul>
  *   <li>Motor 1 (liftMotor) – Lift arm position control
  *   <li>Motor 2 (rollerMotor) – Roller leader, voltage control
- *   <li>Motor 3 (conveyorMotor)– Conveyor follower, mirrors roller leader
  * </ul>
  */
 public class IntakeIOKraken implements IntakeIO {
@@ -34,11 +34,11 @@ public class IntakeIOKraken implements IntakeIO {
 
   // MotionMagic gains for lift (tune to robot)
   private static final double LIFT_kP = 1.6;
-  private static final double LIFT_kI = 0.4;
+  private static final double LIFT_kI = 0.6;
   private static final double LIFT_kD = 0.5;
-  private static final double LIFT_kS = 0.25;
-  private static final double LIFT_kV = 0.12;
-  private static final double LIFT_kA = 0.01;
+  private static final double LIFT_kS = 0.5;
+  private static final double LIFT_kV = 0.8;
+  private static final double LIFT_kA = 0.0;
   private static final double LIFT_kG = 1.0;
   private static final double LIFT_CRUISE_RPS = 80.0; // motor rotations per second
   private static final double LIFT_ACCEL_RPS2 = 160.0; // motor rotations per second²
@@ -52,6 +52,7 @@ public class IntakeIOKraken implements IntakeIO {
   private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0).withEnableFOC(true);
   private final VoltageOut liftVoltageRequest = new VoltageOut(0).withEnableFOC(true);
   private final VoltageOut rollerVoltageRequest = new VoltageOut(0).withEnableFOC(true);
+  private final VelocityTorqueCurrentFOC rollerVelocityRequest = new VelocityTorqueCurrentFOC(0.0);
 
   // ── Status signals ────────────────────────────────────────────────────────
   private final StatusSignal<Angle> liftPosition;
@@ -64,6 +65,8 @@ public class IntakeIOKraken implements IntakeIO {
   private final StatusSignal<Voltage> rollerAppliedVolts;
   private final StatusSignal<Current> rollerCurrent;
   private final StatusSignal<Temperature> rollerTemp;
+
+  private double setpointRPM;
 
   /**
    * Constructs the TalonFX intake IO.
@@ -160,6 +163,8 @@ public class IntakeIOKraken implements IntakeIO {
     inputs.rollerAppliedVolts = rollerAppliedVolts.getValueAsDouble();
     inputs.rollerCurrentAmps = rollerCurrent.getValueAsDouble();
     inputs.rollerTempCelsius = rollerTemp.getValueAsDouble();
+    inputs.rollerRPM = ((rollerMotor.getVelocity().getValueAsDouble()) / (2 * Math.PI)) * 60;
+    inputs.rollerSetpointRPM = setpointRPM;
   }
 
   @Override
@@ -175,6 +180,12 @@ public class IntakeIOKraken implements IntakeIO {
   @Override
   public void setRollerVoltage(double volts) {
     rollerMotor.setControl(rollerVoltageRequest.withOutput(volts));
+  }
+
+  @Override
+  public void setRollerRPM(double rpm) {
+    setpointRPM = rpm;
+    rollerMotor.setControl(rollerVelocityRequest.withVelocity((rpm / 60)));
   }
 
   @Override

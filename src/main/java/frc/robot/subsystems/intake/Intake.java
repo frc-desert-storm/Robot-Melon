@@ -34,10 +34,10 @@ public class Intake extends SubsystemBase {
 
   // ── Roller voltages ─────────────────────────────────────────
   /** Voltage applied to rollers during normal intaking. */
-  public static final double ROLLER_INTAKE_VOLTS = 14.0;
+  public static final double ROLLER_INTAKE_RPM = 2000.0;
 
   /** Voltage applied to rollers to eject game pieces. */
-  public static final double ROLLER_EJECT_VOLTS = -14.0;
+  public static final double ROLLER_EJECT_RPM = -2000;
 
   // ── IO layer ─────────────────────────────────────────────────────────────
   private final IntakeIO io;
@@ -80,12 +80,12 @@ public class Intake extends SubsystemBase {
 
   /** Spin rollers in the intaking direction. */
   public void runRollersForward() {
-    io.setRollerVoltage(ROLLER_INTAKE_VOLTS);
+    io.setRollerRPM(ROLLER_INTAKE_RPM);
   }
 
   /** Spin rollers in the ejecting direction. */
   public void runRollersReverse() {
-    io.setRollerVoltage(ROLLER_EJECT_VOLTS);
+    io.setRollerRPM(ROLLER_EJECT_RPM);
   }
 
   /** Stop all roller motors. */

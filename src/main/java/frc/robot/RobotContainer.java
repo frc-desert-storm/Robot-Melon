@@ -227,25 +227,7 @@ public class RobotContainer {
     // operatorKeyboard.button(4).onTrue(compositeIntake.intakeRaiseCommand());
     controller.rightTrigger().whileTrue(compositeIntake.intakeLowerCommand());
 
-    // ── Key 5 : Intake forward ────────────────────────────────────────────
-    // Held: runs rollers forward
-    // Released: stops rollers
-    operatorKeyboard.button(5).whileTrue(compositeIntake.intakeForwardCommand());
-
-    // ── Key 6 : Intake reverse ────────────────────────────────────────────
-    // Held: runs rollers in reverse
-    // Released: stops rollers
-    operatorKeyboard.button(6).whileTrue(compositeIntake.intakeReverseCommand());
-
-    // ── Key 7 : Indexer forward ───────────────────────────────────────────
-    // Held: runs indexer forward
-    // Released: stops indexer
-    operatorKeyboard.button(7).whileTrue(compositeIntake.indexerForwardCommand());
-
-    // ── Key 8 : Indexer reverse ───────────────────────────────────────────
-    // Held: runs indexer in reverse
-    // Released: stops indexer
-    operatorKeyboard.button(8).whileTrue(compositeIntake.indexerReverseCommand());
+    controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
   }
 
   /**
