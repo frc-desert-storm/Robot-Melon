@@ -170,19 +170,19 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -controller.getLeftY() * .5,
+            () -> -controller.getLeftX() * .5,
+            () -> -controller.getRightX() * .5));
 
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
+    //    // Lock to 0° when A button is held
+    //    controller
+    //        .a()
+    //        .whileTrue(
+    //            DriveCommands.joystickDriveAtAngle(
+    //                drive,
+    //                () -> -controller.getLeftY(),
+    //                () -> -controller.getLeftX(),
+    //                () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -198,7 +198,7 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.SCORING));
+    controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
     controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
   }
 

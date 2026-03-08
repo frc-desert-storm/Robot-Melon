@@ -153,7 +153,7 @@ public class Turret extends SubsystemBase {
                   io.stopTurn();
                   break;
                 case TUNING:
-                  io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get()));
+                  io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
                   io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
                   io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
                   break;
@@ -297,7 +297,7 @@ public class Turret extends SubsystemBase {
         setTarget(getPassingTarget(pose));
         break;
       case TUNING:
-        io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get()));
+        io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
         io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
         io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
         break;

@@ -18,7 +18,7 @@ public class Indexer extends SubsystemBase {
   public static final double REVERSE_VOLTS = -2.0;
 
   //
-  public static final double FEED_RPM = 3000;
+  public static final double FEED_RPM = 4000;
   public static final double REVERSE_RPM = -3000;
 
   // ── IO layer ─────────────────────────────────────────────────────────────

@@ -61,15 +61,16 @@ public final class Constants {
         (50.0 / 16) * (90.0 / 10); // 16:50 gear, 10:90 gear
     public static final double HOOD_MOTOR_RATIO =
         (24.0 / 12) * (188.0 / 10); // 2:1 belt, 180:10 rack
+    public static final double FLYWHEEL_MOTOR_RATIO = 0.5; // 1:2
 
     public static final Slot0Configs TURN_GAINS =
         new Slot0Configs().withKP(400).withKD(0.1).withKS(2);
 
     public static final Slot0Configs HOOD_GAINS =
-        new Slot0Configs().withKP(1024).withKD(5).withKS(0.28);
+        new Slot0Configs().withKP(256).withKD(5).withKS(0.28);
 
     public static final Slot0Configs FLYWHEEL_GAINS =
-        new Slot0Configs().withKP(40).withKD(0.4).withKS(10).withKV(0.3);
+        new Slot0Configs().withKP(8).withKD(0.4).withKS(10).withKV(0.3);
 
     public static final CurrentLimitsConfigs TURN_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(30);
@@ -96,7 +97,9 @@ public final class Constants {
             .withNeutralMode(NeutralModeValue.Coast);
 
     public static final FeedbackConfigs FLYWHEEL_FEEDBACK_CONFIGS =
-        new FeedbackConfigs().withVelocityFilterTimeConstant(Seconds.of(0.01));
+        new FeedbackConfigs()
+            .withVelocityFilterTimeConstant(Seconds.of(0.01))
+            .withRotorToSensorRatio(FLYWHEEL_MOTOR_RATIO);
 
     public static final Current BANG_BANG_AMPS = Amps.of(100);
 
@@ -150,39 +153,41 @@ public final class Constants {
     public static final InterpolatingDoubleTreeMap TOF_MAP = new InterpolatingDoubleTreeMap();
 
     static { // TODO Tune these
-      SHOT_MAP.put(5.34, new TurretCalculator.ShotData(RPM.of(2770), Degrees.of(27)));
-      TOF_MAP.put(5.34, 1.30);
-
-      SHOT_MAP.put(4.90, new TurretCalculator.ShotData(RPM.of(2740), Degrees.of(26)));
-      TOF_MAP.put(4.90, 1.42);
-
-      SHOT_MAP.put(4.44, new TurretCalculator.ShotData(RPM.of(2725), Degrees.of(25.5)));
-      TOF_MAP.put(4.44, 1.34);
-
-      SHOT_MAP.put(4.05, new TurretCalculator.ShotData(RPM.of(2725), Degrees.of(25)));
-      TOF_MAP.put(4.05, 1.36);
-
-      SHOT_MAP.put(3.74, new TurretCalculator.ShotData(RPM.of(2660), Degrees.of(24)));
-      TOF_MAP.put(3.74, 1.21);
-
-      SHOT_MAP.put(3.42, new TurretCalculator.ShotData(RPM.of(2600), Degrees.of(23)));
-      TOF_MAP.put(3.42, 1.40);
-
-      SHOT_MAP.put(3.06, new TurretCalculator.ShotData(RPM.of(2510), Degrees.of(22)));
-      TOF_MAP.put(3.06, 1.38);
-
-      SHOT_MAP.put(2.73, new TurretCalculator.ShotData(RPM.of(2410), Degrees.of(20.5)));
-      TOF_MAP.put(2.73, 1.34);
-
-      SHOT_MAP.put(2.45, new TurretCalculator.ShotData(RPM.of(2360), Degrees.of(19.5)));
-      TOF_MAP.put(2.45, 1.28);
-
-      SHOT_MAP.put(2.14, new TurretCalculator.ShotData(RPM.of(2310), Degrees.of(18)));
-      TOF_MAP.put(2.14, 1.31);
-
-      SHOT_MAP.put(1.86, new TurretCalculator.ShotData(RPM.of(2260), Degrees.of(17)));
-      TOF_MAP.put(1.86, 1.24);
-
+      //      SHOT_MAP.put(5.34, new TurretCalculator.ShotData(RPM.of(2770), Degrees.of(27)));
+      //      TOF_MAP.put(5.34, 1.30);
+      //
+      //      SHOT_MAP.put(4.90, new TurretCalculator.ShotData(RPM.of(2740), Degrees.of(26)));
+      //      TOF_MAP.put(4.90, 1.42);
+      //
+      //      SHOT_MAP.put(4.44, new TurretCalculator.ShotData(RPM.of(2725), Degrees.of(25.5)));
+      //      TOF_MAP.put(4.44, 1.34);
+      //
+      //      SHOT_MAP.put(4.05, new TurretCalculator.ShotData(RPM.of(2725), Degrees.of(25)));
+      //      TOF_MAP.put(4.05, 1.36);
+      //
+      //      SHOT_MAP.put(3.74, new TurretCalculator.ShotData(RPM.of(2660), Degrees.of(24)));
+      //      TOF_MAP.put(3.74, 1.21);
+      //
+      //      SHOT_MAP.put(3.42, new TurretCalculator.ShotData(RPM.of(2600), Degrees.of(23)));
+      //      TOF_MAP.put(3.42, 1.40);
+      //
+      //      SHOT_MAP.put(3.06, new TurretCalculator.ShotData(RPM.of(2510), Degrees.of(22)));
+      //      TOF_MAP.put(3.06, 1.38);
+      //
+      //      SHOT_MAP.put(2.73, new TurretCalculator.ShotData(RPM.of(2410), Degrees.of(20.5)));
+      //      TOF_MAP.put(2.73, 1.34);
+      //
+      //      SHOT_MAP.put(2.45, new TurretCalculator.ShotData(RPM.of(2360), Degrees.of(19.5)));
+      //      TOF_MAP.put(2.45, 1.28);
+      //
+      //      SHOT_MAP.put(2.14, new TurretCalculator.ShotData(RPM.of(2310), Degrees.of(18)));
+      //      TOF_MAP.put(2.14, 1.31);
+      //
+      //      SHOT_MAP.put(1.86, new TurretCalculator.ShotData(RPM.of(2260), Degrees.of(17)));
+      //      TOF_MAP.put(1.86, 1.24);
+      //
+      //      SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
+      //      TOF_MAP.put(1.55, 1.23);
       SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
       TOF_MAP.put(1.55, 1.23);
     }
