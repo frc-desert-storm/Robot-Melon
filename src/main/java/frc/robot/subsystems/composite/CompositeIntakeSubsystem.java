@@ -71,18 +71,18 @@ public class CompositeIntakeSubsystem extends SubsystemBase {
         // Step 1: Deploy the arm (does not require the indexer subsystem)
         Commands.runOnce(intake::lowerIntake, intake),
         // Step 2: Wait for the arm to reach the deployed position
-        Commands.waitUntil(() -> intake.isLiftAtTarget(0.75)),
+        Commands.waitUntil(() -> intake.isLiftAtTarget(0.2)),
         // Step 3: Run intake rollers + indexer in parallel until interrupted
         Commands.parallel(
             Commands.startEnd(intake::runRollersForward, intake::stopRollers, intake),
-            Commands.startEnd(indexer::setVelocityRPM, indexer::stop, indexer)));
+            Commands.startEnd(indexer::runForward, indexer::stopSideRollers, indexer)));
   }
 
   public Command compositeForwardCommand() {
     return Commands.sequence(
         Commands.parallel(
             Commands.startEnd(intake::runRollersForward, intake::stopRollers, intake),
-            Commands.startEnd(indexer::runForward, indexer::stop, indexer)));
+            Commands.startEnd(indexer::runForward, indexer::stopSideRollers, indexer)));
   }
 
   /**
@@ -94,7 +94,13 @@ public class CompositeIntakeSubsystem extends SubsystemBase {
   public Command compositeReverseCommand() {
     return Commands.parallel(
         Commands.startEnd(intake::runRollersReverse, intake::stopRollers, intake),
-        Commands.startEnd(indexer::runReverse, indexer::stop, indexer));
+        Commands.startEnd(indexer::runReverse, indexer::stopSideRollers, indexer));
+  }
+
+  public Command loadShooter() {
+    return Commands.parallel(
+        Commands.startEnd(indexer::indexConveyor, indexer::stop, indexer),
+        Commands.startEnd(intake::runRollersForward, intake::stop, intake));
   }
 
   // =========================================================================

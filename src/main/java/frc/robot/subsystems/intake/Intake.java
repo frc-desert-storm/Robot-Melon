@@ -27,17 +27,17 @@ public class Intake extends SubsystemBase {
 
   // ── Lift setpoints (mechanism rotations) ─────────────────────────────────
   /** Arm fully lowered – intake is outside the robot perimeter for ground pickup. */
-  public static final double LIFT_DOWN_POSITION_ROT = -0.433;
+  public static final double LIFT_DOWN_POSITION_ROT = -0.488525;
 
   /** Arm fully raised – intake is stowed inside the frame perimeter. */
   public static final double LIFT_UP_POSITION_ROT = 0.0;
 
   // ── Roller voltages ─────────────────────────────────────────
   /** Voltage applied to rollers during normal intaking. */
-  public static final double ROLLER_INTAKE_RPM = 2000.0;
+  public static final double ROLLER_INTAKE_RPM = 1750.0;
 
   /** Voltage applied to rollers to eject game pieces. */
-  public static final double ROLLER_EJECT_RPM = -2000;
+  public static final double ROLLER_EJECT_RPM = -1750.0;
 
   // ── IO layer ─────────────────────────────────────────────────────────────
   private final IntakeIO io;
@@ -116,7 +116,7 @@ public class Intake extends SubsystemBase {
   }
 
   public double getRollerVelocityRpm() {
-    return inputs.rollerVelocityRpm;
+    return inputs.conveyorVelocityRpm;
   }
 
   public boolean isLiftLowered() {

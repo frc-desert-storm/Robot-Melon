@@ -45,17 +45,21 @@ public class Indexer extends SubsystemBase {
 
   /** Run the indexer in the forward (feed-to-shooter) direction. */
   public void runForward() {
-    io.setVoltage(FEED_VOLTS);
+    io.setSideRollersVelocityRPM(FEED_RPM);
   }
 
   /** Run the indexer in reverse (eject / un-jam). */
   public void runReverse() {
-    io.setVoltage(REVERSE_VOLTS);
+    io.setSideRollersVelocityRPM(-FEED_RPM);
   }
 
   /** Stop the indexer. */
-  public void stop() {
-    io.setVoltage(0.0);
+  public void stopSideRollers() {
+    io.setSideRollerVoltage(0);
+  }
+
+  public void stopIndexer() {
+    io.setIndexerVoltage(0);
   }
 
   // =========================================================================
@@ -66,8 +70,18 @@ public class Indexer extends SubsystemBase {
     return inputs.leaderVelocityRpm;
   }
 
-  public void setVelocityRPM() {
-    io.setVelocityRPM(FEED_RPM);
+  public void runIndexerForward() {
+    io.setIndexerRPM(FEED_RPM);
+  }
+
+  public void runBoth() {
+    io.setIndexerRPM(FEED_RPM);
+    io.setSideRollersVelocityRPM(FEED_RPM);
+  }
+
+  public void stop() {
+    io.setSideRollerVoltage(0);
+    io.setIndexerVoltage(0);
   }
 
   // =========================================================================
@@ -76,11 +90,19 @@ public class Indexer extends SubsystemBase {
 
   /** Run the indexer forward until interrupted, then stop. */
   public Command forwardCommand() {
-    return Commands.startEnd(this::runForward, this::stop, this);
+    return Commands.startEnd(this::runForward, this::stopSideRollers, this);
   }
 
   /** Run the indexer in reverse until interrupted, then stop. */
   public Command reverseCommand() {
-    return Commands.startEnd(this::runReverse, this::stop, this);
+    return Commands.startEnd(this::runReverse, this::stopSideRollers, this);
+  }
+
+  public Command loadShooter() {
+    return Commands.startEnd(this::runIndexerForward, this::stopSideRollers, this);
+  }
+
+  public Command indexConveyor() {
+    return Commands.startEnd(this::runBoth, this::stop, this);
   }
 }

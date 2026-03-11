@@ -27,14 +27,23 @@ public interface IntakeIO {
     public double liftCurrentAmps = 0.0;
     public double liftTempCelsius = 0.0;
 
-    // ── Roller ──────────────────────────────────────────────────────────────
-    public boolean rollerMotorConnected = false;
-    public double rollerVelocityRpm = 0.0;
-    public double rollerAppliedVolts = 0.0;
-    public double rollerCurrentAmps = 0.0;
-    public double rollerTempCelsius = 0.0;
-    public double rollerRPM = 0.0;
-    public double rollerSetpointRPM = 0.0;
+    // ── Conveyor ──────────────────────────────────────────────────────────────
+    public boolean conveyorMotorConnected = false;
+    public double conveyorVelocityRpm = 0.0;
+    public double conveyorAppliedVolts = 0.0;
+    public double conveyorCurrentAmps = 0.0;
+    public double conveyorTempCelsius = 0.0;
+    public double conveyorRPM = 0.0;
+    public double conveyorSetpointRPM = 0.0;
+
+    // ── Lift Roller ──────────────────────────────────────────────────────────────
+    public boolean liftRollerMotorConnected = false;
+    public double liftRollerVelocityRpm = 0.0;
+    public double liftRollerAppliedVolts = 0.0;
+    public double liftRollerCurrentAmps = 0.0;
+    public double liftRollerTempCelsius = 0.0;
+    public double liftRollerRPM = 0.0;
+    public double liftRollerSetpointRPM = 0.0;
   }
 
   /** Update logged inputs. Called every robot loop. */

@@ -96,7 +96,6 @@ public class IndexerIOKraken implements IndexerIO {
 
     // Follower with direction flipped (oppose leader direction = true)
     rightRollerMotor.setControl(new Follower(leftRollerMotorId, MotorAlignmentValue.Opposed));
-    indexerMotor.setControl(new Follower(leftRollerMotorId, MotorAlignmentValue.Aligned));
 
     // ── Status signal registration ────────────────────────────────────────
     leaderVelocity = leftRollerMotor.getVelocity();
@@ -138,14 +137,25 @@ public class IndexerIOKraken implements IndexerIO {
   }
 
   @Override
-  public void setVoltage(double volts) {
+  public void setSideRollerVoltage(double volts) {
     leftRollerMotor.setControl(voltageRequest.withOutput(volts));
     // Follower automatically opposes the leader's direction via hardware Follower control
   }
 
   @Override
-  public void setVelocityRPM(double rpm) {
+  public void setIndexerVoltage(double volts) {
+    indexerMotor.setControl(voltageRequest.withOutput(volts));
+  }
+
+  @Override
+  public void setSideRollersVelocityRPM(double rpm) {
     setpointRPM = rpm;
     leftRollerMotor.setControl(velocityReq.withVelocity(rpm / 60.0));
+  }
+
+  @Override
+  public void setIndexerRPM(double rpm) {
+    setpointRPM = rpm;
+    indexerMotor.setControl(velocityReq.withVelocity((rpm / 60.0)));
   }
 }

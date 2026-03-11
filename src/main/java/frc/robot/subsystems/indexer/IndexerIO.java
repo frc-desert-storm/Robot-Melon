@@ -37,7 +37,13 @@ public interface IndexerIO {
    *
    * @param volts Voltage to apply, positive = toward-shooter direction.
    */
-  default void setVoltage(double volts) {}
+  default void setSideRollerVoltage(double volts) {}
 
-  default void setVelocityRPM(double rpm) {}
+  default void setIndexerVoltage(double volts) {}
+
+  default void setSideRollersVelocityRPM(double rpm) {}
+
+  default void setIndexerRPM(double rpm) {}
+
+  default void autoUnjam(double rpm) {}
 }

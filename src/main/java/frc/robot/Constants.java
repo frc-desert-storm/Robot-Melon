@@ -41,7 +41,8 @@ public final class Constants {
     private IntakeConstants() {}
 
     public static final int LIFT_CAN_ID = 41;
-    public static final int ROLLER_CAN_ID = 42;
+    public static final int CONVEYOR_CAN_ID = 42;
+    public static final int LIFT_ROLLER_CAN_ID = 49;
   }
 
   public static final class IndexerConstants {

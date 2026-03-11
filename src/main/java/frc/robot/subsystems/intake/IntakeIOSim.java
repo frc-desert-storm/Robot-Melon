@@ -73,11 +73,11 @@ public class IntakeIOSim implements IntakeIO {
     inputs.liftTempCelsius = 25.0;
 
     // ── Roller ───────────────────────
-    inputs.rollerMotorConnected = true;
-    inputs.rollerVelocityRpm = rollerSim.getAngularVelocityRPM();
-    inputs.rollerAppliedVolts = rollerAppliedVolts;
-    inputs.rollerCurrentAmps = Math.abs(rollerSim.getCurrentDrawAmps());
-    inputs.rollerTempCelsius = 25.0;
+    inputs.conveyorMotorConnected = true;
+    inputs.conveyorVelocityRpm = rollerSim.getAngularVelocityRPM();
+    inputs.conveyorAppliedVolts = rollerAppliedVolts;
+    inputs.conveyorCurrentAmps = Math.abs(rollerSim.getCurrentDrawAmps());
+    inputs.conveyorTempCelsius = 25.0;
   }
 
   @Override

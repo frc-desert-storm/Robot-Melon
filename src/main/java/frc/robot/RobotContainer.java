@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.IndexerConstants;
@@ -39,6 +38,8 @@ import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
+import frc.robot.subsystems.turret.Turret.TurretGoal;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -54,8 +55,7 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
-  private final CommandGenericHID operatorKeyboard =
-      new CommandGenericHID(Constants.OPERATOR_KEYBOARD_PORT);
+  private final CommandXboxController operator = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -63,7 +63,10 @@ public class RobotContainer {
   private final Intake intake =
       new Intake(
           RobotBase.isReal()
-              ? new IntakeIOKraken(IntakeConstants.LIFT_CAN_ID, IntakeConstants.ROLLER_CAN_ID)
+              ? new IntakeIOKraken(
+                  IntakeConstants.LIFT_CAN_ID,
+                  IntakeConstants.CONVEYOR_CAN_ID,
+                  IntakeConstants.LIFT_ROLLER_CAN_ID)
               : new IntakeIOSim());
   private final Indexer indexer =
       new Indexer(
@@ -155,7 +158,7 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
-    configureButtonBindings();
+    driveBindings();
     configureOperatorBindings();
   }
 
@@ -165,7 +168,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {
+  private void driveBindings() {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -189,7 +192,7 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     controller
-        .b()
+        .a()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -197,35 +200,22 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
-
-    controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
-    controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
   }
 
   private void configureOperatorBindings() {
-    // ── Key 1 : Composite forward ─────────────────────────────────────────
-    // Held: lowers arm → waits for arm → runs rollers + indexer forward
-    // Released: stops rollers and indexer
-    // operatorKeyboard.button(1).whileTrue(compositeIntake.compositeForwardCommand());
-    controller.povUp().whileTrue(compositeIntake.compositeForwardCommand());
 
-    // ── Key 2 : Composite reverse ─────────────────────────────────────────
-    // Held: runs rollers + indexer in reverse (eject / un-jam)
-    // Released: stops both
-    // operatorKeyboard.button(2).whileTrue(compositeIntake.compositeReverseCommand());
-    controller.povDown().whileTrue(compositeIntake.compositeReverseCommand());
+    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandLift());
+    controller.b().onTrue(compositeIntake.intakeRaiseCommand());
 
-    // ── Key 3 : Intake lower ──────────────────────────────────────────────
-    // Held: commands arm to down position (MotionMagic holds it)
-    // Released: arm holds position (no explicit cancel)
-    // operatorKeyboard.button(3).onTrue(compositeIntake.intakeLowerCommand());
-    controller.leftTrigger().whileTrue(compositeIntake.intakeRaiseCommand());
+    controller.rightTrigger().onTrue((turret.setGoal(Turret.TurretGoal.SCORING)));
+    controller.rightTrigger().onFalse(turret.setGoal(Turret.TurretGoal.IDLE));
 
-    // ── Key 4 : Intake raise ──────────────────────────────────────────────
-    // Held: commands arm to up/stow position
-    // operatorKeyboard.button(4).onTrue(compositeIntake.intakeRaiseCommand());
-    controller.rightTrigger().whileTrue(compositeIntake.intakeLowerCommand());
+    controller.leftBumper().whileTrue(compositeIntake.loadShooter());
 
+    // controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
+    // controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
+
+    operator.leftTrigger().whileTrue(compositeIntake.compositeReverseCommand());
     controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
   }
 
@@ -241,7 +231,7 @@ public class RobotContainer {
   public void stopMechanisms() {
     turret.setGoal(Turret.TurretGoal.OFF);
     intake.stop();
-    indexer.stop();
+    indexer.stopSideRollers();
     drive.stop();
   }
 }
