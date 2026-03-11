@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import static frc.robot.Constants.IntakeConstants.*;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -12,7 +14,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
-import static frc.robot.Constants.IntakeConstants.*;
 
 /**
  * Real-robot implementation of {@link IntakeIO} using three Kraken X60 (TalonFX) motors.

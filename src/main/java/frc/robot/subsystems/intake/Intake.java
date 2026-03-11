@@ -1,11 +1,11 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
-
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 public class Intake extends SubsystemBase {
   private final IntakeIO io;
@@ -20,7 +20,7 @@ public class Intake extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
   }
-  
+
   public Command setState(PivotState pivotState, RollerState rollerState) {
     return runOnce(
         () -> {
@@ -31,7 +31,7 @@ public class Intake extends SubsystemBase {
             case DOWN -> io.setPivotAngle(Rotations.of(0.488525));
             case IDLE -> io.stopPivot();
           }
-          switch (rollerState){
+          switch (rollerState) {
             case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1750.0 / 60));
             case IDLE -> io.stopRoller();
           }
@@ -46,6 +46,7 @@ public class Intake extends SubsystemBase {
   }
 
   public PivotState pivotState = PivotState.IDLE;
+
   public enum PivotState {
     UP,
     DOWN,
@@ -53,6 +54,7 @@ public class Intake extends SubsystemBase {
   }
 
   public RollerState rollerState = RollerState.IDLE;
+
   public enum RollerState {
     INTAKING,
     IDLE

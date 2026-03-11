@@ -57,10 +57,7 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser;
 
   private final Intake intake =
-      new Intake(
-          RobotBase.isReal()
-              ? new IntakeIOKraken()
-              : new IntakeIOSim());
+      new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
   private final Indexer indexer =
       new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
@@ -178,17 +175,24 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    controller.rightTrigger().onTrue(new ParallelCommandGroup(
-        turret.setGoal(Turret.TurretGoal.SCORING),
-        indexer.setState(Indexer.State.SCORING)
-    ));
-    controller.rightTrigger().onFalse(new ParallelCommandGroup(
-        turret.setGoal(Turret.TurretGoal.IDLE),
-        indexer.setState(Indexer.State.IDLE)
-    ));
-    
-    controller.leftTrigger().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
-    controller.leftTrigger().onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+    controller
+        .rightTrigger()
+        .onTrue(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.SCORING),
+                indexer.setState(Indexer.State.SCORING)));
+    controller
+        .rightTrigger()
+        .onFalse(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
+
+    controller
+        .leftTrigger()
+        .onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
+    controller
+        .leftTrigger()
+        .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
     //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
     //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());
