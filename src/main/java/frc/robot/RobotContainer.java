@@ -36,6 +36,7 @@ import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
+import frc.robot.subsystems.vision.*;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -48,6 +49,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Turret turret;
+  private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -76,23 +78,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
-        // The ModuleIOTalonFXS implementation provides an example implementation for
-        // TalonFXS controller connected to a CANdi with a PWM encoder. The
-        // implementations
-        // of ModuleIOTalonFX, ModuleIOTalonFXS, and ModuleIOSpark (from the Spark
-        // swerve
-        // template) can be freely intermixed to support alternative hardware
-        // arrangements.
-        // Please see the AdvantageKit template documentation for more information:
-        // https://docs.advantagekit.org/getting-started/template-projects/talonfx-swerve-template#custom-module-implementations
-        //
-        // drive =
-        // new Drive(
-        // new GyroIOPigeon2(),
-        // new ModuleIOTalonFXS(TunerConstants.FrontLeft),
-        // new ModuleIOTalonFXS(TunerConstants.FrontRight),
-        // new ModuleIOTalonFXS(TunerConstants.BackLeft),
-        // new ModuleIOTalonFXS(TunerConstants.BackRight));
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVision(VisionConstants.leftCameraName,VisionConstants.robotToLeftCamera),
+            new VisionIOPhotonVision(VisionConstants.rightCameraName,VisionConstants.robotToRightCamera)
+        );
         break;
 
       case SIM:
@@ -105,6 +95,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVisionSim(VisionConstants.leftCameraName,VisionConstants.robotToLeftCamera,drive::getPose),
+            new VisionIOPhotonVisionSim(VisionConstants.rightCameraName,VisionConstants.robotToRightCamera,drive::getPose)
+        );
         break;
 
       default:
@@ -117,6 +112,11 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
+        vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIO() {},
+            new VisionIO() {}
+        );
         break;
     }
 
