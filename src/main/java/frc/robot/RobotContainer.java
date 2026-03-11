@@ -11,19 +11,33 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.IndexerConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.composite.CompositeIntakeSubsystem;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIOKraken;
+import frc.robot.subsystems.indexer.IndexerIOSim;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOKraken;
+import frc.robot.subsystems.intake.IntakeIOSim;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIO;
+import frc.robot.subsystems.turret.TurretIOKraken;
+import frc.robot.subsystems.turret.TurretIOSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -35,12 +49,33 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Turret turret;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController operator = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
+
+  private final Intake intake =
+      new Intake(
+          RobotBase.isReal()
+              ? new IntakeIOKraken(
+                  IntakeConstants.LIFT_CAN_ID,
+                  IntakeConstants.CONVEYOR_CAN_ID,
+                  IntakeConstants.LIFT_ROLLER_CAN_ID)
+              : new IntakeIOSim());
+  private final Indexer indexer =
+      new Indexer(
+          RobotBase.isReal()
+              ? new IndexerIOKraken(
+                  IndexerConstants.LEFT_ROLLER_ID,
+                  IndexerConstants.RIGHT_ROLLER_ID,
+                  IndexerConstants.INDEXER_ID)
+              : new IndexerIOSim());
+  private final CompositeIntakeSubsystem compositeIntake =
+      new CompositeIntakeSubsystem(intake, indexer);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -56,7 +91,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-
+        turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -85,6 +120,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
         break;
 
       default:
@@ -96,6 +132,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
         break;
     }
 
@@ -119,7 +156,8 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
-    configureButtonBindings();
+    driveBindings();
+    configureOperatorBindings();
   }
 
   /**
@@ -128,31 +166,31 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {
+  private void driveBindings() {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -controller.getLeftY() * .5,
+            () -> -controller.getLeftX() * .5,
+            () -> -controller.getRightX() * .5));
 
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
+    //    // Lock to 0° when A button is held
+    //    controller
+    //        .a()
+    //        .whileTrue(
+    //            DriveCommands.joystickDriveAtAngle(
+    //                drive,
+    //                () -> -controller.getLeftY(),
+    //                () -> -controller.getLeftX(),
+    //                () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
     controller
-        .b()
+        .a()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -162,6 +200,23 @@ public class RobotContainer {
                 .ignoringDisable(true));
   }
 
+  private void configureOperatorBindings() {
+
+    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandLift());
+    controller.b().onTrue(compositeIntake.intakeRaiseCommand());
+
+    controller.rightTrigger().onTrue((turret.setGoal(Turret.TurretGoal.SCORING)));
+    controller.rightTrigger().onFalse((turret.setGoal(Turret.TurretGoal.IDLE)));
+
+    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
+
+    // controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
+    // controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
+
+    operator.leftTrigger().whileTrue(compositeIntake.compositeReverseCommand());
+    controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
+  }
+
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
@@ -169,5 +224,12 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void stopMechanisms() {
+    turret.setGoal(Turret.TurretGoal.OFF);
+    intake.stop();
+    indexer.stopSideRollers();
+    drive.stop();
   }
 }

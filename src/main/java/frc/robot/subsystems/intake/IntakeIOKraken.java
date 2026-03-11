@@ -1,0 +1,256 @@
+package frc.robot.subsystems.intake;
+
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
+
+/**
+ * Real-robot implementation of {@link IntakeIO} using three Kraken X60 (TalonFX) motors.
+ *
+ * <ul>
+ *   <li>Motor 1 (liftMotor) – Lift arm position control
+ *   <li>Motor 2 (rollerMotor) – Roller leader, voltage control
+ * </ul>
+ */
+public class IntakeIOKraken implements IntakeIO {
+
+  // ── Configurable constants ────────────────────────────────────────────────
+  /** Gear ratio between lift motor output shaft and the mechanism. */
+  public static final double LIFT_GEAR_RATIO = 9.0;
+
+  /** Gear ratio between roller motor output shaft and the roller mechanism. */
+  public static final double ROLLER_GEAR_RATIO = 1.0;
+
+  // MotionMagic gains for lift (tune to robot)
+  private static final double LIFT_kP = 40.0;
+  private static final double LIFT_kI = 0.0;
+  private static final double LIFT_kD = 0.0;
+  private static final double LIFT_kS = 0.5;
+  private static final double LIFT_kV = 0.8;
+  private static final double LIFT_kA = 0.0;
+  private static final double LIFT_kG = 0.45;
+  private static final double LIFT_CRUISE_RPS = 80.0; // motor rotations per second
+  private static final double LIFT_ACCEL_RPS2 = 160.0; // motor rotations per second²
+  private static final double LIFT_JERK_RPS3 = 1600.0;
+
+  // ── Hardware ─────────────────────────────────────────────────────────────
+  private final TalonFX liftMotor;
+  private final TalonFX conveyorMotor;
+  private final TalonFX liftRollerMotor;
+
+  // ── Control requests ─────────────────────────────────────────────────────
+  private final MotionMagicVoltage mmRequest = new MotionMagicVoltage(0).withEnableFOC(true);
+  private final VoltageOut liftVoltageRequest = new VoltageOut(0).withEnableFOC(true);
+  private final VoltageOut rollerVoltageRequest = new VoltageOut(0).withEnableFOC(true);
+  private final VelocityTorqueCurrentFOC rollerVelocityRequest = new VelocityTorqueCurrentFOC(0.0);
+
+  // ── Status signals ────────────────────────────────────────────────────────
+  private final StatusSignal<Angle> liftPosition;
+  private final StatusSignal<AngularVelocity> liftVelocity;
+  private final StatusSignal<Voltage> liftAppliedVolts;
+  private final StatusSignal<Current> liftCurrent;
+  private final StatusSignal<Temperature> liftTemp;
+
+  private final StatusSignal<AngularVelocity> rollerVelocity;
+  private final StatusSignal<Voltage> rollerAppliedVolts;
+  private final StatusSignal<Current> rollerCurrent;
+  private final StatusSignal<Temperature> rollerTemp;
+
+  private final StatusSignal<AngularVelocity> liftRollerVelocity;
+  private final StatusSignal<Voltage> liftRollerAppliedVolts;
+  private final StatusSignal<Current> liftRollerCurrent;
+  private final StatusSignal<Temperature> liftRollerTemp;
+
+  private double setpointRPM;
+
+  /**
+   * Constructs the TalonFX intake IO.
+   *
+   * @param liftCanId CAN ID for the lift motor
+   * @param rollerCanId CAN ID for the roller leader motor
+   * @param canbus CANivore bus name, or empty string for RIO CAN
+   */
+  public IntakeIOKraken(int liftCanId, int rollerCanId, int liftRollerCanId) {
+    liftMotor = new TalonFX(liftCanId);
+    conveyorMotor = new TalonFX(rollerCanId);
+    liftRollerMotor = new TalonFX(liftRollerCanId);
+
+    // ── Lift configuration ────────────────────────────────────────────────
+    var liftCfg = new TalonFXConfiguration();
+    liftCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    liftCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    liftCfg.Feedback.SensorToMechanismRatio = LIFT_GEAR_RATIO;
+    liftCfg.Slot0.kP = LIFT_kP;
+    liftCfg.Slot0.kI = LIFT_kI;
+    liftCfg.Slot0.kD = LIFT_kD;
+    liftCfg.Slot0.kS = LIFT_kS;
+    liftCfg.Slot0.kV = LIFT_kV;
+    liftCfg.Slot0.kA = LIFT_kA;
+    liftCfg.Slot0.kG = LIFT_kG;
+    liftCfg.MotionMagic.MotionMagicCruiseVelocity = LIFT_CRUISE_RPS;
+    liftCfg.MotionMagic.MotionMagicAcceleration = LIFT_ACCEL_RPS2;
+    liftCfg.MotionMagic.MotionMagicJerk = LIFT_JERK_RPS3;
+    liftCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    liftCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    liftCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    liftCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+    liftMotor.getConfigurator().apply(liftCfg);
+
+    // ── Roller configuration ──────────────────────────────────────────────
+    var conveyorCfg = new TalonFXConfiguration();
+    conveyorCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    conveyorCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    conveyorCfg.Feedback.SensorToMechanismRatio = ROLLER_GEAR_RATIO;
+    conveyorCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    conveyorCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    conveyorCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    conveyorCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    conveyorCfg.Slot0.kP = 8.0;
+    conveyorCfg.Slot0.kI = 0.2;
+
+    conveyorMotor.getConfigurator().apply(conveyorCfg);
+
+    // ── Lift Roller configuration ──────────────────────────────────────────────
+
+    var liftRollerCfg = new TalonFXConfiguration();
+    liftRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    liftRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    liftRollerCfg.Feedback.SensorToMechanismRatio = ROLLER_GEAR_RATIO;
+    liftRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    liftRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    liftRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    liftRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    liftRollerCfg.Slot0.kP = 8.0;
+    liftRollerCfg.Slot0.kI = 0.2;
+
+    liftRollerMotor.getConfigurator().apply(liftRollerCfg);
+
+    liftRollerMotor.setControl(new Follower(rollerCanId, MotorAlignmentValue.Opposed));
+
+    // ── Status signal registration ────────────────────────────────────────
+    liftPosition = liftMotor.getPosition();
+    liftVelocity = liftMotor.getVelocity();
+    liftAppliedVolts = liftMotor.getMotorVoltage();
+    liftCurrent = liftMotor.getSupplyCurrent();
+    liftTemp = liftMotor.getDeviceTemp();
+
+    rollerVelocity = conveyorMotor.getVelocity();
+    rollerAppliedVolts = conveyorMotor.getMotorVoltage();
+    rollerCurrent = conveyorMotor.getSupplyCurrent();
+    rollerTemp = conveyorMotor.getDeviceTemp();
+
+    liftRollerVelocity = liftRollerMotor.getVelocity();
+    liftRollerAppliedVolts = liftRollerMotor.getMotorVoltage();
+    liftRollerCurrent = liftRollerMotor.getSupplyCurrent();
+    liftRollerTemp = liftRollerMotor.getDeviceTemp();
+
+    BaseStatusSignal.setUpdateFrequencyForAll(
+        50.0,
+        liftPosition,
+        liftVelocity,
+        liftAppliedVolts,
+        liftCurrent,
+        liftTemp,
+        rollerVelocity,
+        rollerAppliedVolts,
+        rollerCurrent,
+        rollerTemp,
+        liftRollerVelocity,
+        liftRollerAppliedVolts,
+        liftRollerCurrent,
+        liftRollerTemp);
+
+    liftMotor.optimizeBusUtilization();
+    conveyorMotor.optimizeBusUtilization();
+    liftRollerMotor.optimizeBusUtilization();
+  }
+
+  @Override
+  public void updateInputs(IntakeIOInputs inputs) {
+    inputs.liftMotorConnected =
+        BaseStatusSignal.refreshAll(
+                liftPosition, liftVelocity, liftAppliedVolts, liftCurrent, liftTemp)
+            .isOK();
+    inputs.conveyorMotorConnected =
+        BaseStatusSignal.refreshAll(rollerVelocity, rollerAppliedVolts, rollerCurrent, rollerTemp)
+            .isOK();
+
+    inputs.liftPositionRot = liftPosition.getValueAsDouble();
+    inputs.liftVelocityRpm = liftVelocity.getValueAsDouble() * 60.0;
+    inputs.liftAppliedVolts = liftAppliedVolts.getValueAsDouble();
+    inputs.liftCurrentAmps = liftCurrent.getValueAsDouble();
+    inputs.liftTempCelsius = liftTemp.getValueAsDouble();
+
+    inputs.conveyorVelocityRpm = rollerVelocity.getValueAsDouble() * 60.0;
+    inputs.conveyorAppliedVolts = rollerAppliedVolts.getValueAsDouble();
+    inputs.conveyorCurrentAmps = rollerCurrent.getValueAsDouble();
+    inputs.conveyorTempCelsius = rollerTemp.getValueAsDouble();
+    inputs.conveyorRPM = ((conveyorMotor.getVelocity().getValueAsDouble()) / (2 * Math.PI)) * 60;
+    inputs.conveyorSetpointRPM = setpointRPM;
+
+    inputs.liftRollerVelocityRpm = liftRollerVelocity.getValueAsDouble() * 60.0;
+    inputs.liftRollerAppliedVolts = liftRollerAppliedVolts.getValueAsDouble();
+    inputs.liftRollerCurrentAmps = liftRollerCurrent.getValueAsDouble();
+    inputs.liftRollerTempCelsius = liftRollerTemp.getValueAsDouble();
+    inputs.liftRollerRPM = ((liftRollerMotor.getVelocity().getValueAsDouble()) / (2 * Math.PI)) * 60;
+    inputs.liftRollerSetpointRPM = setpointRPM;
+  }
+
+  @Override
+  public void setLiftPosition(double positionRot) {
+    liftMotor.setControl(mmRequest.withPosition(positionRot));
+  }
+
+  @Override
+  public void setLiftVoltage(double volts) {
+    liftMotor.setControl(liftVoltageRequest.withOutput(volts));
+  }
+
+  @Override
+  public void setRollerVoltage(double volts) {
+    conveyorMotor.setControl(rollerVoltageRequest.withOutput(volts));
+  }
+
+  @Override
+  public void setRollerRPM(double rpm) {
+    setpointRPM = rpm;
+    conveyorMotor.setControl(rollerVelocityRequest.withVelocity((rpm / 60)));
+  }
+
+  @Override
+  public void resetLiftEncoder() {
+    liftMotor.setPosition(0.0);
+  }
+
+  @Override
+  public void setLiftBrakeMode(boolean brake) {
+    liftMotor
+        .getConfigurator()
+        .apply(
+            new TalonFXConfiguration()
+                .withMotorOutput(
+                    new com.ctre.phoenix6.configs.MotorOutputConfigs()
+                        .withNeutralMode(brake ? NeutralModeValue.Brake : NeutralModeValue.Coast)));
+  }
+
+  @Override
+  public void stop() {
+    liftMotor.stopMotor();
+    conveyorMotor.stopMotor();
+  }
+}
