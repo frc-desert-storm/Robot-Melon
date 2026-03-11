@@ -156,6 +156,6 @@ public class IndexerIOKraken implements IndexerIO {
   @Override
   public void setIndexerRPM(double rpm) {
     setpointRPM = rpm;
-    indexerMotor.setControl(velocityReq.withVelocity((rpm / 60.0)));
+    indexerMotor.setControl(velocityReq.withVelocity(rpm / 60.0));
   }
 }

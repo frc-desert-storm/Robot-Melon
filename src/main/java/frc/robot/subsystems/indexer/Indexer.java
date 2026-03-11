@@ -99,7 +99,7 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command loadShooter() {
-    return Commands.startEnd(this::runIndexerForward, this::stopSideRollers, this);
+    return Commands.startEnd(this::runIndexerForward, this::stopIndexer, this);
   }
 
   public Command indexConveyor() {

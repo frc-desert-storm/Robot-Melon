@@ -98,9 +98,7 @@ public class CompositeIntakeSubsystem extends SubsystemBase {
   }
 
   public Command loadShooter() {
-    return Commands.parallel(
-        Commands.startEnd(indexer::indexConveyor, indexer::stop, indexer),
-        Commands.startEnd(intake::runRollersForward, intake::stop, intake));
+    return Commands.startEnd(indexer::loadShooter, indexer::stopIndexer, indexer);
   }
 
   // =========================================================================

@@ -38,8 +38,6 @@ import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
-import frc.robot.subsystems.turret.Turret.TurretGoal;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -208,9 +206,9 @@ public class RobotContainer {
     controller.b().onTrue(compositeIntake.intakeRaiseCommand());
 
     controller.rightTrigger().onTrue((turret.setGoal(Turret.TurretGoal.SCORING)));
-    controller.rightTrigger().onFalse(turret.setGoal(Turret.TurretGoal.IDLE));
+    controller.rightTrigger().onFalse((turret.setGoal(Turret.TurretGoal.IDLE)));
 
-    controller.leftBumper().whileTrue(compositeIntake.loadShooter());
+    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
 
     // controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
     // controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
