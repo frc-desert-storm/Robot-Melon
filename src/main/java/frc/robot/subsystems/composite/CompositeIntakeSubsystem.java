@@ -98,7 +98,7 @@ public class CompositeIntakeSubsystem extends SubsystemBase {
   }
 
   public Command loadShooter() {
-    return Commands.startEnd(indexer::loadShooter, indexer::stopIndexer, indexer);
+    return Commands.startEnd(indexer::runBoth, indexer::stopIndexer, indexer);
   }
 
   // =========================================================================

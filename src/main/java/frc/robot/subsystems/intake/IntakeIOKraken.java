@@ -207,7 +207,7 @@ public class IntakeIOKraken implements IntakeIO {
     inputs.liftRollerAppliedVolts = liftRollerAppliedVolts.getValueAsDouble();
     inputs.liftRollerCurrentAmps = liftRollerCurrent.getValueAsDouble();
     inputs.liftRollerTempCelsius = liftRollerTemp.getValueAsDouble();
-    inputs.liftRollerRPM = ((conveyorMotor.getVelocity().getValueAsDouble()) / (2 * Math.PI)) * 60;
+    inputs.liftRollerRPM = ((liftRollerMotor.getVelocity().getValueAsDouble()) / (2 * Math.PI)) * 60;
     inputs.liftRollerSetpointRPM = setpointRPM;
   }
 
