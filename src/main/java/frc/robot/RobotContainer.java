@@ -15,13 +15,11 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.IndexerConstants;
-import frc.robot.Constants.IntakeConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.composite.CompositeIntakeSubsystem;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -61,21 +59,10 @@ public class RobotContainer {
   private final Intake intake =
       new Intake(
           RobotBase.isReal()
-              ? new IntakeIOKraken(
-                  IntakeConstants.LIFT_CAN_ID,
-                  IntakeConstants.CONVEYOR_CAN_ID,
-                  IntakeConstants.LIFT_ROLLER_CAN_ID)
+              ? new IntakeIOKraken()
               : new IntakeIOSim());
   private final Indexer indexer =
-      new Indexer(
-          RobotBase.isReal()
-              ? new IndexerIOKraken(
-                  IndexerConstants.LEFT_ROLLER_ID,
-                  IndexerConstants.RIGHT_ROLLER_ID,
-                  IndexerConstants.INDEXER_ID)
-              : new IndexerIOSim());
-  private final CompositeIntakeSubsystem compositeIntake =
-      new CompositeIntakeSubsystem(intake, indexer);
+      new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -157,7 +144,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     driveBindings();
-    configureOperatorBindings();
+    configureBindings();
   }
 
   /**
@@ -175,16 +162,6 @@ public class RobotContainer {
             () -> -controller.getLeftX() * .5,
             () -> -controller.getRightX() * .5));
 
-    //    // Lock to 0° when A button is held
-    //    controller
-    //        .a()
-    //        .whileTrue(
-    //            DriveCommands.joystickDriveAtAngle(
-    //                drive,
-    //                () -> -controller.getLeftY(),
-    //                () -> -controller.getLeftX(),
-    //                () -> Rotation2d.kZero));
-
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
@@ -200,21 +177,27 @@ public class RobotContainer {
                 .ignoringDisable(true));
   }
 
-  private void configureOperatorBindings() {
+  private void configureBindings() {
+    controller.rightTrigger().onTrue(new ParallelCommandGroup(
+        turret.setGoal(Turret.TurretGoal.SCORING),
+        indexer.setState(Indexer.State.SCORING)
+    ));
+    controller.rightTrigger().onFalse(new ParallelCommandGroup(
+        turret.setGoal(Turret.TurretGoal.IDLE),
+        indexer.setState(Indexer.State.IDLE)
+    ));
+    
+    controller.leftTrigger().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
+    controller.leftTrigger().onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
-    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandLift());
-    controller.b().onTrue(compositeIntake.intakeRaiseCommand());
+    //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
+    //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());
+    //    controller.b().onTrue(compositeIntake.intakeRaiseCommand());
+    //     controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
+    //     controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
 
-    controller.rightTrigger().onTrue((turret.setGoal(Turret.TurretGoal.SCORING)));
-    controller.rightTrigger().onFalse((turret.setGoal(Turret.TurretGoal.IDLE)));
-
-    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
-
-    // controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
-    // controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
-
-    operator.leftTrigger().whileTrue(compositeIntake.compositeReverseCommand());
-    controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
+    //    operator.leftTrigger().whileTrue(compositeIntake.compositeReverseCommand());
+    //    controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
   }
 
   /**
@@ -229,7 +212,7 @@ public class RobotContainer {
   public void stopMechanisms() {
     turret.setGoal(Turret.TurretGoal.OFF);
     intake.stop();
-    indexer.stopSideRollers();
+    indexer.stop();
     drive.stop();
   }
 }

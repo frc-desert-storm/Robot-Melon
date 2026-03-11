@@ -1,49 +1,48 @@
 package frc.robot.subsystems.indexer;
 
+import static edu.wpi.first.units.Units.*;
+
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
 
-/**
- * IO interface for the indexer subsystem.
- *
- * <p>The indexer uses two Kraken X60 motors in a leader-follower configuration. The follower runs
- * in the opposite direction so that both motors push the fuel toward the shooter together (e.g.,
- * one motor on each side of a feeding path).
- */
 public interface IndexerIO {
 
   @AutoLog
   class IndexerIOInputs {
-    public boolean leaderMotorConnected = false;
-    public boolean followerMotorConnected = false;
+    public boolean leftRollerConnected;
+    public Voltage leftRollerAppliedVolts = Volts.of(0.0);
+    public Current leftRollerCurrent = Amps.of(0.0);
+    public AngularVelocity leftRollerSpeed = RadiansPerSecond.of(0.0);
 
-    // Leader signals (follower mirrors these via hardware follower mode)
-    public double leaderVelocityRpm = 0.0;
-    public double leaderAppliedVolts = 0.0;
-    public double leaderCurrentAmps = 0.0;
-    public double leaderTempCelsius = 0.0;
+    public boolean rightRollerConnected;
+    public Voltage rightRollerAppliedVolts = Volts.of(0.0);
+    public Current rightRollerCurrent = Amps.of(0.0);
+    public AngularVelocity rightRollerSpeed = RadiansPerSecond.of(0.0);
 
-    // Follower monitoring
-    public double followerCurrentAmps = 0.0;
-    public double followerTempCelsius = 0.0;
+    public boolean indexerRollerConnected;
+    public Voltage indexerRollerAppliedVolts = Volts.of(0.0);
+    public Current indexerRollerCurrent = Amps.of(0.0);
+    public AngularVelocity indexerRollerSpeed = RadiansPerSecond.of(0.0);
 
-    public double setpointRPM = 0.0;
+    public boolean conveyorRollerConnected;
+    public Voltage conveyorRollerAppliedVolts = Volts.of(0.0);
+    public Current conveyorRollerCurrent = Amps.of(0.0);
+    public AngularVelocity conveyorRollerSpeed = RadiansPerSecond.of(0.0);
   }
 
-  /** Update logged inputs. Called every robot loop. */
   default void updateInputs(IndexerIOInputs inputs) {}
 
-  /**
-   * Set the indexer leader voltage; the follower (direction-inverted) mirrors it.
-   *
-   * @param volts Voltage to apply, positive = toward-shooter direction.
-   */
-  default void setSideRollerVoltage(double volts) {}
+  default void setSideRollersSpeed(AngularVelocity speed) {}
 
-  default void setIndexerVoltage(double volts) {}
+  default void setIndexerSpeed(AngularVelocity speed) {}
 
-  default void setSideRollersVelocityRPM(double rpm) {}
+  default void setConveyorSpeed(AngularVelocity speed) {}
 
-  default void setIndexerRPM(double rpm) {}
+  default void stopSideRollers() {}
 
-  default void autoUnjam(double rpm) {}
+  default void stopIndexer() {}
+
+  default void stopConveyor() {}
 }

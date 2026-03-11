@@ -40,9 +40,8 @@ public final class Constants {
   public static final class IntakeConstants {
     private IntakeConstants() {}
 
-    public static final int LIFT_CAN_ID = 41;
-    public static final int CONVEYOR_CAN_ID = 42;
-    public static final int LIFT_ROLLER_CAN_ID = 49;
+    public static final int PIVOT_CAN_ID = 41;
+    public static final int ROLLER_CAN_ID = 49;
   }
 
   public static final class IndexerConstants {
@@ -51,6 +50,7 @@ public final class Constants {
     public static final int LEFT_ROLLER_ID = 45;
     public static final int RIGHT_ROLLER_ID = 48;
     public static final int INDEXER_ID = 44;
+    public static final int CONVEYOR_CAN_ID = 42;
   }
 
   public static class TurretConstants {

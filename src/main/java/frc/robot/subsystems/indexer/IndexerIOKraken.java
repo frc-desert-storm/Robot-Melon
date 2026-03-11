@@ -1,19 +1,19 @@
 package frc.robot.subsystems.indexer;
 
+import static frc.robot.Constants.IndexerConstants.*;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.util.PhoenixUtil;
 
 /**
  * Real-robot implementation of {@link IndexerIO} using two Kraken X60 (TalonFX) motors.
@@ -28,35 +28,35 @@ public class IndexerIOKraken implements IndexerIO {
   private final TalonFX leftRollerMotor;
   private final TalonFX rightRollerMotor;
   private final TalonFX indexerMotor;
-
-  // ── Control request ───────────────────────────────────────────────────────
-  private final VoltageOut voltageRequest = new VoltageOut(0).withEnableFOC(true);
+  private final TalonFX conveyorMotor;
 
   // ── Status signals ────────────────────────────────────────────────────────
-  private final StatusSignal<AngularVelocity> leaderVelocity;
-  private final StatusSignal<Voltage> leaderAppliedVolts;
-  private final StatusSignal<Current> leaderCurrent;
-  private final StatusSignal<Temperature> leaderTemp;
-  private final StatusSignal<Current> followerCurrent;
-  private final StatusSignal<Temperature> followerTemp;
+  private final StatusSignal<AngularVelocity> leftRollerVelocity;
+  private final StatusSignal<Voltage> leftRollerAppliedVolts;
+  private final StatusSignal<Current> leftRollerCurrent;
 
-  private double setpointRPM = 0;
+  private final StatusSignal<AngularVelocity> rightRollerVelocity;
+  private final StatusSignal<Voltage> rightRollerAppliedVolts;
+  private final StatusSignal<Current> rightRollerCurrent;
+
+  private final StatusSignal<AngularVelocity> indexerRollerVelocity;
+  private final StatusSignal<Voltage> indexerRollerAppliedVolts;
+  private final StatusSignal<Current> indexerRollerCurrent;
+
+  private final StatusSignal<AngularVelocity> conveyorRollerVelocity;
+  private final StatusSignal<Voltage> conveyorRollerAppliedVolts;
+  private final StatusSignal<Current> conveyorRollerCurrent;
 
   private final VelocityVoltage velocityReq = new VelocityVoltage(0).withEnableFOC(true);
 
-  /**
-   * Constructs the TalonFX indexer IO.
-   *
-   * @param leftRollerMotorId CAN ID for the indexer leader motor
-   * @param rightRollerMotorId CAN ID for the indexer follower motor (direction will be flipped)
-   * @param canbus CANivore bus name, or empty string for RIO CAN
-   */
-  public IndexerIOKraken(int leftRollerMotorId, int rightRollerMotorId, int indexerId) {
-    leftRollerMotor = new TalonFX(leftRollerMotorId);
-    rightRollerMotor = new TalonFX(rightRollerMotorId);
-    indexerMotor = new TalonFX(indexerId);
+  private final NeutralOut neutralOut = new NeutralOut();
 
-    // ── Leader configuration ──────────────────────────────────────────────
+  public IndexerIOKraken() {
+    leftRollerMotor = new TalonFX(LEFT_ROLLER_ID);
+    rightRollerMotor = new TalonFX(RIGHT_ROLLER_ID);
+    indexerMotor = new TalonFX(INDEXER_ID);
+    conveyorMotor = new TalonFX(CONVEYOR_CAN_ID);
+
     var leftRollerCfg = new TalonFXConfiguration();
     leftRollerCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     leftRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -66,11 +66,11 @@ public class IndexerIOKraken implements IndexerIO {
     leftRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
     leftRollerCfg.Slot0.kP = 10.0;
-    leftRollerCfg.Slot0.kI = 0.2;
 
-    leftRollerMotor.getConfigurator().apply(leftRollerCfg);
-    // ── Follower configuration ────────────────────────────────────────────
+    PhoenixUtil.tryUntilOk(5, () -> leftRollerMotor.getConfigurator().apply(leftRollerCfg, 0.25));
+
     var rightRollerCfg = new TalonFXConfiguration();
+    rightRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     rightRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
     rightRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
@@ -78,11 +78,9 @@ public class IndexerIOKraken implements IndexerIO {
     rightRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
     rightRollerCfg.Slot0.kP = 10.0;
-    rightRollerCfg.Slot0.kI = 0.2;
 
-    rightRollerMotor.getConfigurator().apply(rightRollerCfg);
+    PhoenixUtil.tryUntilOk(5, () -> rightRollerMotor.getConfigurator().apply(rightRollerCfg, 0.25));
 
-    // ── Follower2 configuration ────────────────────────────────────────────
     var indexerCfg = new TalonFXConfiguration();
     indexerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     indexerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
@@ -92,70 +90,117 @@ public class IndexerIOKraken implements IndexerIO {
 
     indexerCfg.Slot0.kP = 8.0;
 
-    indexerMotor.getConfigurator().apply(rightRollerCfg);
+    PhoenixUtil.tryUntilOk(5, () -> indexerMotor.getConfigurator().apply(indexerCfg, 0.25));
 
-    // Follower with direction flipped (oppose leader direction = true)
-    rightRollerMotor.setControl(new Follower(leftRollerMotorId, MotorAlignmentValue.Opposed));
+    var conveyorRollerCfg = new TalonFXConfiguration();
+    conveyorRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    conveyorRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    conveyorRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    conveyorRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    conveyorRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+
+    conveyorRollerCfg.Slot0.kP = 10.0;
+
+    PhoenixUtil.tryUntilOk(5, () -> conveyorMotor.getConfigurator().apply(conveyorRollerCfg, 0.25));
 
     // ── Status signal registration ────────────────────────────────────────
-    leaderVelocity = leftRollerMotor.getVelocity();
-    leaderAppliedVolts = leftRollerMotor.getMotorVoltage();
-    leaderCurrent = leftRollerMotor.getSupplyCurrent();
-    leaderTemp = leftRollerMotor.getDeviceTemp();
-    followerCurrent = rightRollerMotor.getSupplyCurrent();
-    followerTemp = rightRollerMotor.getDeviceTemp();
+    leftRollerVelocity = leftRollerMotor.getVelocity();
+    leftRollerAppliedVolts = leftRollerMotor.getMotorVoltage();
+    leftRollerCurrent = leftRollerMotor.getSupplyCurrent();
+
+    rightRollerVelocity = rightRollerMotor.getVelocity();
+    rightRollerAppliedVolts = rightRollerMotor.getMotorVoltage();
+    rightRollerCurrent = rightRollerMotor.getSupplyCurrent();
+
+    indexerRollerVelocity = indexerMotor.getVelocity();
+    indexerRollerAppliedVolts = indexerMotor.getMotorVoltage();
+    indexerRollerCurrent = indexerMotor.getSupplyCurrent();
+
+    conveyorRollerVelocity = conveyorMotor.getVelocity();
+    conveyorRollerAppliedVolts = conveyorMotor.getMotorVoltage();
+    conveyorRollerCurrent = conveyorMotor.getSupplyCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
-        leaderVelocity,
-        leaderAppliedVolts,
-        leaderCurrent,
-        leaderTemp,
-        followerCurrent,
-        followerTemp);
+        leftRollerVelocity,
+        leftRollerAppliedVolts,
+        leftRollerCurrent,
+        rightRollerVelocity,
+        rightRollerAppliedVolts,
+        rightRollerCurrent,
+        indexerRollerVelocity,
+        indexerRollerAppliedVolts,
+        indexerRollerCurrent,
+        conveyorRollerVelocity,
+        conveyorRollerAppliedVolts,
+        conveyorRollerCurrent);
 
     leftRollerMotor.optimizeBusUtilization();
     rightRollerMotor.optimizeBusUtilization();
+    indexerMotor.optimizeBusUtilization();
+    conveyorMotor.optimizeBusUtilization();
   }
 
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
-    inputs.leaderMotorConnected =
-        BaseStatusSignal.refreshAll(leaderVelocity, leaderAppliedVolts, leaderCurrent, leaderTemp)
-            .isOK();
-    inputs.followerMotorConnected =
-        BaseStatusSignal.refreshAll(followerCurrent, followerTemp).isOK();
+    inputs.leftRollerConnected =
+        BaseStatusSignal.isAllGood(leftRollerVelocity, leftRollerAppliedVolts, leftRollerCurrent);
 
-    inputs.leaderVelocityRpm = leaderVelocity.getValueAsDouble() * 60.0;
-    inputs.leaderAppliedVolts = leaderAppliedVolts.getValueAsDouble();
-    inputs.leaderCurrentAmps = leaderCurrent.getValueAsDouble();
-    inputs.leaderTempCelsius = leaderTemp.getValueAsDouble();
-    inputs.followerCurrentAmps = followerCurrent.getValueAsDouble();
-    inputs.followerTempCelsius = followerTemp.getValueAsDouble();
+    inputs.leftRollerSpeed = leftRollerVelocity.getValue();
+    inputs.leftRollerAppliedVolts = leftRollerAppliedVolts.getValue();
+    inputs.leftRollerCurrent = leftRollerCurrent.getValue();
 
-    inputs.setpointRPM = setpointRPM;
+    inputs.rightRollerConnected =
+        BaseStatusSignal.isAllGood(
+            rightRollerVelocity, rightRollerAppliedVolts, rightRollerCurrent);
+    inputs.rightRollerSpeed = rightRollerVelocity.getValue();
+    inputs.rightRollerAppliedVolts = rightRollerAppliedVolts.getValue();
+    inputs.rightRollerCurrent = rightRollerCurrent.getValue();
+
+    inputs.indexerRollerConnected =
+        BaseStatusSignal.isAllGood(
+            indexerRollerVelocity, indexerRollerAppliedVolts, indexerRollerCurrent);
+    inputs.indexerRollerSpeed = indexerRollerVelocity.getValue();
+    inputs.indexerRollerAppliedVolts = indexerRollerAppliedVolts.getValue();
+    inputs.indexerRollerCurrent = indexerRollerCurrent.getValue();
+
+    inputs.conveyorRollerConnected =
+        BaseStatusSignal.isAllGood(
+            conveyorRollerVelocity, conveyorRollerAppliedVolts, conveyorRollerCurrent);
+    inputs.conveyorRollerSpeed = conveyorRollerVelocity.getValue();
+    inputs.conveyorRollerAppliedVolts = conveyorRollerAppliedVolts.getValue();
+    inputs.conveyorRollerCurrent = conveyorRollerCurrent.getValue();
   }
 
   @Override
-  public void setSideRollerVoltage(double volts) {
-    leftRollerMotor.setControl(voltageRequest.withOutput(volts));
-    // Follower automatically opposes the leader's direction via hardware Follower control
+  public void setSideRollersSpeed(AngularVelocity speed) {
+    leftRollerMotor.setControl(velocityReq.withVelocity(speed));
+    rightRollerMotor.setControl(velocityReq.withVelocity(speed));
   }
 
   @Override
-  public void setIndexerVoltage(double volts) {
-    indexerMotor.setControl(voltageRequest.withOutput(volts));
+  public void setIndexerSpeed(AngularVelocity speed) {
+    indexerMotor.setControl(velocityReq.withVelocity(speed));
   }
 
   @Override
-  public void setSideRollersVelocityRPM(double rpm) {
-    setpointRPM = rpm;
-    leftRollerMotor.setControl(velocityReq.withVelocity(rpm / 60.0));
+  public void setConveyorSpeed(AngularVelocity speed) {
+    conveyorMotor.setControl(velocityReq.withVelocity(speed));
   }
 
   @Override
-  public void setIndexerRPM(double rpm) {
-    setpointRPM = rpm;
-    indexerMotor.setControl(velocityReq.withVelocity(rpm / 60.0));
+  public void stopSideRollers() {
+    leftRollerMotor.setControl(neutralOut);
+    rightRollerMotor.setControl(neutralOut);
+  }
+
+  @Override
+  public void stopIndexer() {
+    indexerMotor.setControl(neutralOut);
+  }
+
+  @Override
+  public void stopConveyor() {
+    conveyorMotor.setControl(neutralOut);
   }
 }
