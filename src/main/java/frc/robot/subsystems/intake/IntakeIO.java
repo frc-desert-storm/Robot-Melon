@@ -14,6 +14,7 @@ public interface IntakeIO {
     public double pivotAppliedVolts = 0.0;
     public double pivotCurrentAmps = 0.0;
     public double pivotTempCelsius = 0.0;
+    public boolean pivotAtGoal = false;
 
     public boolean rollerMotorConnected = false;
     public double rollerVelocityRpm = 0.0;

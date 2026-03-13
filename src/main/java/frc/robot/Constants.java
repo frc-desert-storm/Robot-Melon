@@ -189,8 +189,8 @@ public final class Constants {
       //
       //      SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
       //      TOF_MAP.put(1.55, 1.23);
-      SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
-      TOF_MAP.put(1.55, 1.23);
+      SHOT_MAP.put(3.7, new TurretCalculator.ShotData(RPM.of(3500), Degrees.of(22)));
+      TOF_MAP.put(3.7, 1.8);
     }
 
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);

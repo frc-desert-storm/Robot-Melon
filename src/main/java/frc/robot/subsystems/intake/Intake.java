@@ -1,15 +1,18 @@
 package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
+import static edu.wpi.first.units.Units.*;
+
 public class Intake extends SubsystemBase {
   private final IntakeIO io;
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+
+  public Angle pivotOffset = Degrees.of(0.0);
 
   public Intake(IntakeIO io) {
     this.io = io;
@@ -28,7 +31,7 @@ public class Intake extends SubsystemBase {
           this.rollerState = rollerState;
           switch (pivotState) {
             case UP -> io.setPivotAngle(Rotations.of(0.0));
-            case DOWN -> io.setPivotAngle(Rotations.of(0.488525));
+            case DOWN -> io.setPivotAngle(Rotations.of(0.360).minus(pivotOffset));
             case IDLE -> io.stopPivot();
           }
           switch (rollerState) {

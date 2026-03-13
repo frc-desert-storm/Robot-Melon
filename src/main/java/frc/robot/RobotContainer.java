@@ -39,6 +39,8 @@ import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -78,11 +80,13 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
-        vision = new Vision(
-            drive::addVisionMeasurement,
-            new VisionIOPhotonVision(VisionConstants.leftCameraName,VisionConstants.robotToLeftCamera),
-            new VisionIOPhotonVision(VisionConstants.rightCameraName,VisionConstants.robotToRightCamera)
-        );
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
+                new VisionIOPhotonVision(
+                    VisionConstants.rightCameraName, VisionConstants.robotToRightCamera));
         break;
 
       case SIM:
@@ -95,11 +99,17 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
-        vision = new Vision(
-            drive::addVisionMeasurement,
-            new VisionIOPhotonVisionSim(VisionConstants.leftCameraName,VisionConstants.robotToLeftCamera,drive::getPose),
-            new VisionIOPhotonVisionSim(VisionConstants.rightCameraName,VisionConstants.robotToRightCamera,drive::getPose)
-        );
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.leftCameraName,
+                    VisionConstants.robotToLeftCamera,
+                    drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.rightCameraName,
+                    VisionConstants.robotToRightCamera,
+                    drive::getPose));
         break;
 
       default:
@@ -112,11 +122,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
-        vision = new Vision(
-            drive::addVisionMeasurement,
-            new VisionIO() {},
-            new VisionIO() {}
-        );
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
 
@@ -193,6 +199,9 @@ public class RobotContainer {
     controller
         .leftTrigger()
         .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+
+    controller.povUp().onTrue(intake.runOnce(() -> {intake.pivotOffset = intake.pivotOffset.plus(Degrees.of(1));}));
+    controller.povDown().onTrue(intake.runOnce(() -> {intake.pivotOffset = intake.pivotOffset.minus(Degrees.of(1));}));
 
     //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
     //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());

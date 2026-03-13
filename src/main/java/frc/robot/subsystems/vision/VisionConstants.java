@@ -8,15 +8,24 @@
 package frc.robot.subsystems.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Filesystem;
+import java.io.IOException;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  public static AprilTagFieldLayout aprilTagLayout;
+
+  static {
+    try {
+      aprilTagLayout =
+          new AprilTagFieldLayout(Filesystem.getDeployDirectory().toPath() + "/apriltags.json");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   // Camera names, must match names configured on coprocessor
   public static String leftCameraName = "leftCamera";
@@ -26,16 +35,16 @@ public class VisionConstants {
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToLeftCamera =
       new Transform3d(
-          Units.inchesToMeters(-10.574),
-          Units.inchesToMeters(9.839),
-          Units.inchesToMeters(5.952),
-          new Rotation3d(0.0, Units.degreesToRadians(20), Units.degreesToRadians(-30)));
-  public static Transform3d robotToRightCamera =
-      new Transform3d(
           Units.inchesToMeters(10.574),
           Units.inchesToMeters(9.839),
           Units.inchesToMeters(5.952),
-          new Rotation3d(0.0, Units.degreesToRadians(20), Units.degreesToRadians(30)));
+          new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(34)));
+  public static Transform3d robotToRightCamera =
+      new Transform3d(
+          Units.inchesToMeters(-10.574),
+          Units.inchesToMeters(9.839),
+          Units.inchesToMeters(5.952),
+          new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(-30)));
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.3;

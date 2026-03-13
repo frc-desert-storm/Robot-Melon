@@ -59,6 +59,7 @@ public class IntakeIOKraken implements IntakeIO {
   private final StatusSignal<AngularVelocity> pivotVelocity;
   private final StatusSignal<Voltage> pivotAppliedVolts;
   private final StatusSignal<Current> pivotCurrent;
+  private final StatusSignal<Boolean> pivotAtGoal;
 
   private final StatusSignal<AngularVelocity> rollerVelocity;
   private final StatusSignal<Voltage> rollerAppliedVolts;
@@ -110,6 +111,7 @@ public class IntakeIOKraken implements IntakeIO {
     pivotVelocity = pivotMotor.getVelocity();
     pivotAppliedVolts = pivotMotor.getMotorVoltage();
     pivotCurrent = pivotMotor.getSupplyCurrent();
+    pivotAtGoal = pivotMotor.getMotionMagicAtTarget();
 
     rollerVelocity = rollerMotor.getVelocity();
     rollerAppliedVolts = rollerMotor.getMotorVoltage();
@@ -121,6 +123,7 @@ public class IntakeIOKraken implements IntakeIO {
         pivotVelocity,
         pivotAppliedVolts,
         pivotCurrent,
+        pivotAtGoal,
         rollerVelocity,
         rollerAppliedVolts,
         rollerCurrent);
@@ -140,6 +143,7 @@ public class IntakeIOKraken implements IntakeIO {
     inputs.pivotVelocityRpm = pivotVelocity.getValueAsDouble() * 60.0;
     inputs.pivotAppliedVolts = pivotAppliedVolts.getValueAsDouble();
     inputs.pivotCurrentAmps = pivotCurrent.getValueAsDouble();
+    inputs.pivotAtGoal = pivotAtGoal.getValue();
 
     inputs.rollerVelocityRpm = rollerVelocity.getValueAsDouble() * 60.0;
     inputs.rollerAppliedVolts = rollerAppliedVolts.getValueAsDouble();
