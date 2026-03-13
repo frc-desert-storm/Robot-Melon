@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -38,8 +40,6 @@ import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
-import static edu.wpi.first.units.Units.Degrees;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -200,8 +200,20 @@ public class RobotContainer {
         .leftTrigger()
         .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
-    controller.povUp().onTrue(intake.runOnce(() -> {intake.pivotOffset = intake.pivotOffset.plus(Degrees.of(1));}));
-    controller.povDown().onTrue(intake.runOnce(() -> {intake.pivotOffset = intake.pivotOffset.minus(Degrees.of(1));}));
+    controller
+        .povUp()
+        .onTrue(
+            intake.runOnce(
+                () -> {
+                  intake.pivotOffset = intake.pivotOffset.plus(Degrees.of(1));
+                }));
+    controller
+        .povDown()
+        .onTrue(
+            intake.runOnce(
+                () -> {
+                  intake.pivotOffset = intake.pivotOffset.minus(Degrees.of(1));
+                }));
 
     //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
     //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());
