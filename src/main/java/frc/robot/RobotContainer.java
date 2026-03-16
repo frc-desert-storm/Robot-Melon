@@ -61,7 +61,7 @@ public class RobotContainer {
 
   private final Intake intake =
       new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
-\   private final Indexer indexer =
+  private final Indexer indexer =
       new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
