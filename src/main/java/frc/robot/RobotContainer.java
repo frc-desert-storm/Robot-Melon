@@ -21,12 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIOPigeon2;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOSim;
-import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOKraken;
 import frc.robot.subsystems.indexer.IndexerIOSim;
@@ -38,6 +33,9 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -49,6 +47,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private SwerveDriveSimulation driveSimulation = null;
   private final Turret turret;
   private final Vision vision;
 
@@ -77,11 +76,12 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontLeft),
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight));
+                new ModuleIOTalonFX(TunerConstants.BackRight),
+                (robotPose) -> {});
         turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                drive,
                 new VisionIOPhotonVision(
                     VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
                 new VisionIOPhotonVision(
@@ -90,17 +90,22 @@ public class RobotContainer {
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+        driveSimulation =
+            new SwerveDriveSimulation(
+                Drive.getMapleSimConfig(), new Pose2d(3, 3, new Rotation2d()));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight));
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]),
+                driveSimulation::setSimulationWorldPose);
         turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                drive,
                 new VisionIOPhotonVisionSim(
                     VisionConstants.leftCameraName,
                     VisionConstants.robotToLeftCamera,
@@ -119,9 +124,10 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
-                new ModuleIO() {});
+                new ModuleIO() {},
+                (robotPose) -> {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
         break;
     }
 
@@ -184,7 +190,7 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(
                     () ->
-                        drive.setPose(
+                        drive.resetOdometry(
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
@@ -262,5 +268,15 @@ public class RobotContainer {
     intake.stop();
     indexer.stop();
     drive.stop();
+  }
+
+  public void updateSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    SimulatedArena.getInstance().simulationPeriodic();
+    Logger.recordOutput(
+        "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+        "FieldSimulation/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
   }
 }
