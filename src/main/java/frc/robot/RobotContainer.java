@@ -7,11 +7,8 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -64,7 +61,7 @@ public class RobotContainer {
 
   private final Intake intake =
       new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
-  private final Indexer indexer =
+\   private final Indexer indexer =
       new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -136,6 +133,8 @@ public class RobotContainer {
         "Stop Shooting",
         new ParallelCommandGroup(
             turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
+    NamedCommands.registerCommand(
+        "Intake down", intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -172,9 +171,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY() * .5,
-            () -> -controller.getLeftX() * .5,
-            () -> -controller.getRightX() * .5));
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -205,26 +204,39 @@ public class RobotContainer {
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
     controller
-        .leftTrigger()
-        .onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
+        .rightBumper()
+        .onTrue(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.PASSING),
+                indexer.setState(Indexer.State.SCORING)));
     controller
-        .leftTrigger()
-        .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+        .rightBumper()
+        .onFalse(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
     controller
-        .povUp()
-        .onTrue(
-            intake.runOnce(
-                () -> {
-                  intake.pivotOffset = intake.pivotOffset.plus(Degrees.of(1));
-                }));
+        .leftTrigger()
+        .onTrue(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.INTAKING));
     controller
-        .povDown()
+        .leftTrigger()
+        .onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
+
+    controller.povDown().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+    controller.povDown().onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
+
+    controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
+
+    controller
+        .povRight()
         .onTrue(
-            intake.runOnce(
-                () -> {
-                  intake.pivotOffset = intake.pivotOffset.minus(Degrees.of(1));
-                }));
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.TUNING), indexer.setState(Indexer.State.SCORING)));
+    controller
+        .povRight()
+        .onFalse(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
     //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
     //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());

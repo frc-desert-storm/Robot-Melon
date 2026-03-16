@@ -80,7 +80,7 @@ public final class Constants {
         new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(30);
 
     public static final CurrentLimitsConfigs FLYWHEEL_CURRENT_LIMITS =
-        new CurrentLimitsConfigs().withStatorCurrentLimit(100);
+        new CurrentLimitsConfigs().withStatorCurrentLimit(80);
 
     public static final MotorOutputConfigs TURN_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
@@ -189,8 +189,12 @@ public final class Constants {
       //
       //      SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
       //      TOF_MAP.put(1.55, 1.23);
-      SHOT_MAP.put(3.7, new TurretCalculator.ShotData(RPM.of(3500), Degrees.of(22)));
-      TOF_MAP.put(3.7, 1.8);
+      SHOT_MAP.put(2.0, new TurretCalculator.ShotData(RPM.of(2750), Degrees.of(22)));
+      TOF_MAP.put(2.0, 1.05);
+      SHOT_MAP.put(3.2, new TurretCalculator.ShotData(RPM.of(3100), Degrees.of(22)));
+      TOF_MAP.put(3.2, 1.16);
+      SHOT_MAP.put(5.0, new TurretCalculator.ShotData(RPM.of(3550), Degrees.of(28)));
+      TOF_MAP.put(5.0, 1.33);
     }
 
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);

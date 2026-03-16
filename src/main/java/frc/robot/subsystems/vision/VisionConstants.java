@@ -38,7 +38,7 @@ public class VisionConstants {
           Units.inchesToMeters(10.574),
           Units.inchesToMeters(9.839),
           Units.inchesToMeters(5.952),
-          new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(34)));
+          new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(26)));
   public static Transform3d robotToRightCamera =
       new Transform3d(
           Units.inchesToMeters(-10.574),

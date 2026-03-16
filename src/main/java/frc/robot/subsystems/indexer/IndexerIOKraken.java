@@ -1,5 +1,6 @@
 package frc.robot.subsystems.indexer;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.Constants.IndexerConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -72,9 +73,9 @@ public class IndexerIOKraken implements IndexerIO {
     var rightRollerCfg = new TalonFXConfiguration();
     rightRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     rightRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     rightRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    rightRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    rightRollerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     rightRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
     rightRollerCfg.Slot0.kP = 10.0;
@@ -83,9 +84,9 @@ public class IndexerIOKraken implements IndexerIO {
 
     var indexerCfg = new TalonFXConfiguration();
     indexerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    indexerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    indexerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     indexerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    indexerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    indexerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     indexerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
     indexerCfg.Slot0.kP = 8.0;
@@ -94,9 +95,9 @@ public class IndexerIOKraken implements IndexerIO {
 
     var conveyorRollerCfg = new TalonFXConfiguration();
     conveyorRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    conveyorRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    conveyorRollerCfg.CurrentLimits.SupplyCurrentLimit = 35.0;
     conveyorRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    conveyorRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    conveyorRollerCfg.CurrentLimits.StatorCurrentLimit = 50.0;
     conveyorRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
     conveyorRollerCfg.Slot0.kP = 10.0;
@@ -174,8 +175,9 @@ public class IndexerIOKraken implements IndexerIO {
 
   @Override
   public void setSideRollersSpeed(AngularVelocity speed) {
-    leftRollerMotor.setControl(velocityReq.withVelocity(speed));
-    rightRollerMotor.setControl(velocityReq.withVelocity(speed.times(2)));
+    leftRollerMotor.setControl(
+        velocityReq.withVelocity(speed.minus(RotationsPerSecond.of(1200.0 / 60))));
+    rightRollerMotor.setControl(velocityReq.withVelocity(speed));
   }
 
   @Override

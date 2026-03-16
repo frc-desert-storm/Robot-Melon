@@ -168,7 +168,7 @@ public class Turret extends SubsystemBase {
                   io.stopTurn();
                   break;
                 case MANUAL_OVERRIDE:
-                  io.stopFlywheel();
+                  io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
                   io.setHoodAngle(MIN_HOOD_ANGLE);
                   io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
                   break;
