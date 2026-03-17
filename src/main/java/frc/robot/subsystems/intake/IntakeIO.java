@@ -32,7 +32,13 @@ public interface IntakeIO {
 
   default void setRollerSpeed(AngularVelocity speed) {}
 
+  default void setState(Intake.RollerState rollerState, Intake.PivotState pivotState) {}
+
   default void stopPivot() {}
 
   default void stopRoller() {}
+
+  default boolean removeSimFuel() {
+    return false;
+  }
 }

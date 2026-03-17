@@ -26,6 +26,7 @@ import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOKraken;
 import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.turret.Turret;
@@ -50,6 +51,7 @@ public class RobotContainer {
   private SwerveDriveSimulation driveSimulation = null;
   private final Turret turret;
   private final Vision vision;
+  private final Intake intake;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -57,9 +59,6 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-
-  private final Intake intake =
-      new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
   private final Indexer indexer =
       new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
@@ -78,6 +77,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight),
                 (robotPose) -> {});
+        intake = new Intake(new IntakeIOKraken());
         turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
         vision =
             new Vision(
@@ -102,18 +102,21 @@ public class RobotContainer {
                 new ModuleIOSim(driveSimulation.getModules()[2]),
                 new ModuleIOSim(driveSimulation.getModules()[3]),
                 driveSimulation::setSimulationWorldPose);
-        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
+        intake = new Intake(new IntakeIOSim());
+        turret =
+            new Turret(
+                new TurretIOSim(intake, driveSimulation), drive::getPose, drive::getChassisSpeeds);
         vision =
             new Vision(
                 drive,
                 new VisionIOPhotonVisionSim(
                     VisionConstants.leftCameraName,
                     VisionConstants.robotToLeftCamera,
-                    drive::getPose),
+                    driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
                     VisionConstants.rightCameraName,
                     VisionConstants.robotToRightCamera,
-                    drive::getPose));
+                    driveSimulation::getSimulatedDriveTrainPose));
         break;
 
       default:
@@ -127,6 +130,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 (robotPose) -> {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
+        intake = new Intake(new IntakeIO() {});
         vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
         break;
     }
@@ -223,13 +227,10 @@ public class RobotContainer {
 
     controller
         .leftTrigger()
-        .onTrue(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.INTAKING));
+        .onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
     controller
         .leftTrigger()
         .onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
-
-    controller.povDown().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
-    controller.povDown().onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
 
     controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
 
@@ -268,6 +269,13 @@ public class RobotContainer {
     intake.stop();
     indexer.stop();
     drive.stop();
+  }
+
+  public void resetSimulationField() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
   }
 
   public void updateSimulation() {

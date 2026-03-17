@@ -28,6 +28,7 @@ public class Intake extends SubsystemBase {
         () -> {
           this.pivotState = pivotState;
           this.rollerState = rollerState;
+          this.io.setState(rollerState, pivotState);
           switch (pivotState) {
             case UP -> io.setPivotAngle(Rotations.of(0.0));
             case DOWN -> io.setPivotAngle(Rotations.of(1).minus(pivotOffset));
@@ -60,5 +61,9 @@ public class Intake extends SubsystemBase {
   public enum RollerState {
     INTAKING,
     IDLE
+  }
+
+  public boolean removeSimFuel() {
+    return io.removeSimFuel();
   }
 }
