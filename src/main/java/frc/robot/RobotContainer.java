@@ -217,13 +217,12 @@ public class RobotContainer {
 
     controller
         .leftTrigger()
-        .onTrue(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.INTAKING));
+        .onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
     controller
         .leftTrigger()
-        .onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
+        .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
     controller.povDown().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
-    controller.povDown().onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
 
     controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
 
@@ -231,12 +230,14 @@ public class RobotContainer {
         .povRight()
         .onTrue(
             new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.TUNING), indexer.setState(Indexer.State.SCORING)));
+                intake.setState(Intake.PivotState.DOWN, Intake.RollerState.REVERSE),
+                indexer.setState(Indexer.State.REVERSE)));
     controller
         .povRight()
         .onFalse(
             new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
+                intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE),
+                indexer.setState(Indexer.State.IDLE)));
 
     //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
     //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());

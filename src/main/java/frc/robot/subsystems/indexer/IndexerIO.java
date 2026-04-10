@@ -11,16 +11,6 @@ public interface IndexerIO {
 
   @AutoLog
   class IndexerIOInputs {
-    public boolean leftRollerConnected;
-    public Voltage leftRollerAppliedVolts = Volts.of(0.0);
-    public Current leftRollerCurrent = Amps.of(0.0);
-    public AngularVelocity leftRollerSpeed = RadiansPerSecond.of(0.0);
-
-    public boolean rightRollerConnected;
-    public Voltage rightRollerAppliedVolts = Volts.of(0.0);
-    public Current rightRollerCurrent = Amps.of(0.0);
-    public AngularVelocity rightRollerSpeed = RadiansPerSecond.of(0.0);
-
     public boolean indexerRollerConnected;
     public Voltage indexerRollerAppliedVolts = Volts.of(0.0);
     public Current indexerRollerCurrent = Amps.of(0.0);
@@ -34,13 +24,9 @@ public interface IndexerIO {
 
   default void updateInputs(IndexerIOInputs inputs) {}
 
-  default void setSideRollersSpeed(AngularVelocity speed) {}
-
   default void setIndexerSpeed(AngularVelocity speed) {}
 
   default void setConveyorSpeed(AngularVelocity speed) {}
-
-  default void stopSideRollers() {}
 
   default void stopIndexer() {}
 

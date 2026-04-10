@@ -39,18 +39,23 @@ public final class Constants {
 
   public static final class IntakeConstants {
     private IntakeConstants() {}
+    /** Gear ratio between pivot motor output shaft and the mechanism. */
+    public static final double PIVOT_GEAR_RATIO =
+        (64.0 / 14) * (64.0 / 16) * (36.0 / 14); // 14:64 gear, 16:64 gear, 14:36 chain;
 
-    public static final int PIVOT_CAN_ID = 41;
-    public static final int ROLLER_CAN_ID = 49;
+    /** Gear ratio between roller motor output shaft and the roller mechanism. */
+    public static final double ROLLER_GEAR_RATIO = 1.0;
+
+    public static final int PIVOT_FOLLOWER_CAN_ID = 41;
+    public static final int PIVOT_CAN_ID = 49;
+    public static final int ROLLER_CAN_ID = 48;
   }
 
   public static final class IndexerConstants {
     private IndexerConstants() {}
 
-    public static final int LEFT_ROLLER_ID = 45;
-    public static final int RIGHT_ROLLER_ID = 48;
-    public static final int INDEXER_ID = 44;
-    public static final int CONVEYOR_CAN_ID = 42;
+    public static final int INDEXER_ID = 42;
+    public static final int CONVEYOR_CAN_ID = 50;
   }
 
   public static class TurretConstants {

@@ -13,6 +13,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.util.PhoenixUtil;
 
 /**
@@ -25,27 +26,23 @@ import frc.robot.util.PhoenixUtil;
  */
 public class IntakeIOKraken implements IntakeIO {
 
-  // ── Configurable constants ────────────────────────────────────────────────
-  /** Gear ratio between pivot motor output shaft and the mechanism. */
-  public static final double PIVOT_GEAR_RATIO = 9.0;
-
-  /** Gear ratio between roller motor output shaft and the roller mechanism. */
-  public static final double ROLLER_GEAR_RATIO = 1.0;
+  // ── Configurable constants ───────────────────────────────────────────────
 
   // MotionMagic gains for pivot (tune to robot)
   private static final double PIVOT_kP = 40.0;
   private static final double PIVOT_kI = 0.0;
   private static final double PIVOT_kD = 0.0;
-  private static final double PIVOT_kS = 0.5;
-  private static final double PIVOT_kV = 0.8;
+  private static final double PIVOT_kS = 0.0;
+  private static final double PIVOT_kV = 0.0;
   private static final double PIVOT_kA = 0.0;
-  private static final double PIVOT_kG = 0.45;
-  private static final double PIVOT_CRUISE_RPS = 80.0; // motor rotations per second
-  private static final double PIVOT_ACCEL_RPS2 = 160.0; // motor rotations per second²
+  private static final double PIVOT_kG = 0.0;
+  private static final double PIVOT_CRUISE_RPS = 160.0; // motor rotations per second
+  private static final double PIVOT_ACCEL_RPS2 = 360.0; // motor rotations per second²
   private static final double PIVOT_JERK_RPS3 = 1600.0;
 
   // ── Hardware ─────────────────────────────────────────────────────────────
   private final TalonFX pivotMotor;
+  private final TalonFX pivotLeftMotor;
   private final TalonFX rollerMotor;
 
   // ── Control requests ─────────────────────────────────────────────────────
@@ -61,13 +58,20 @@ public class IntakeIOKraken implements IntakeIO {
   private final StatusSignal<Current> pivotCurrent;
   private final StatusSignal<Boolean> pivotAtGoal;
 
+  private final StatusSignal<Angle> pivotLeftPosition;
+  private final StatusSignal<AngularVelocity> pivotLeftVelocity;
+  private final StatusSignal<Voltage> pivotLeftAppliedVolts;
+  private final StatusSignal<Current> pivotLeftCurrent;
+  private final StatusSignal<Boolean> pivotLeftAtGoal;
+
   private final StatusSignal<AngularVelocity> rollerVelocity;
   private final StatusSignal<Voltage> rollerAppliedVolts;
   private final StatusSignal<Current> rollerCurrent;
 
   public IntakeIOKraken() {
-    pivotMotor = new TalonFX(PIVOT_CAN_ID);
-    rollerMotor = new TalonFX(ROLLER_CAN_ID);
+    pivotMotor = new TalonFX(PIVOT_CAN_ID, TunerConstants.kCANBus);
+    pivotLeftMotor = new TalonFX(PIVOT_FOLLOWER_CAN_ID, TunerConstants.kCANBus);
+    rollerMotor = new TalonFX(ROLLER_CAN_ID, TunerConstants.kCANBus);
 
     // ── Pivot configuration ────────────────────────────────────────────────
     var pivotCfg = new TalonFXConfiguration();
@@ -90,6 +94,27 @@ public class IntakeIOKraken implements IntakeIO {
     pivotCfg.CurrentLimits.StatorCurrentLimitEnable = true;
     PhoenixUtil.tryUntilOk(5, () -> pivotMotor.getConfigurator().apply(pivotCfg, 0.25));
 
+    var pivotLeftCfg = new TalonFXConfiguration();
+    pivotLeftCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    pivotLeftCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    pivotLeftCfg.Feedback.SensorToMechanismRatio = PIVOT_GEAR_RATIO;
+    pivotLeftCfg.Slot0.kP = PIVOT_kP;
+    pivotLeftCfg.Slot0.kI = PIVOT_kI;
+    pivotLeftCfg.Slot0.kD = PIVOT_kD;
+    pivotLeftCfg.Slot0.kS = PIVOT_kS;
+    pivotLeftCfg.Slot0.kV = PIVOT_kV;
+    pivotLeftCfg.Slot0.kA = PIVOT_kA;
+    pivotLeftCfg.Slot0.kG = PIVOT_kG;
+    pivotLeftCfg.MotionMagic.MotionMagicCruiseVelocity = PIVOT_CRUISE_RPS;
+    pivotLeftCfg.MotionMagic.MotionMagicAcceleration = PIVOT_ACCEL_RPS2;
+    pivotLeftCfg.MotionMagic.MotionMagicJerk = PIVOT_JERK_RPS3;
+    pivotLeftCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    pivotLeftCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+    pivotLeftCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    pivotLeftCfg.CurrentLimits.StatorCurrentLimitEnable = true;
+    pivotLeftCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    PhoenixUtil.tryUntilOk(5, () -> pivotLeftMotor.getConfigurator().apply(pivotLeftCfg, 0.25));
+
     // ── Pivot Roller configuration ──────────────────────────────────────────────
 
     var rollerCfg = new TalonFXConfiguration();
@@ -101,8 +126,8 @@ public class IntakeIOKraken implements IntakeIO {
     rollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
     rollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
-    rollerCfg.Slot0.kP = 8.0;
-    rollerCfg.Slot0.kI = 0.2;
+    rollerCfg.Slot0.kP = 0.2;
+    rollerCfg.Slot0.kV = 1.0;
 
     PhoenixUtil.tryUntilOk(5, () -> rollerMotor.getConfigurator().apply(rollerCfg, 0.25));
 
@@ -112,6 +137,12 @@ public class IntakeIOKraken implements IntakeIO {
     pivotAppliedVolts = pivotMotor.getMotorVoltage();
     pivotCurrent = pivotMotor.getSupplyCurrent();
     pivotAtGoal = pivotMotor.getMotionMagicAtTarget();
+
+    pivotLeftPosition = pivotLeftMotor.getPosition();
+    pivotLeftVelocity = pivotLeftMotor.getVelocity();
+    pivotLeftAppliedVolts = pivotLeftMotor.getMotorVoltage();
+    pivotLeftCurrent = pivotLeftMotor.getSupplyCurrent();
+    pivotLeftAtGoal = pivotLeftMotor.getMotionMagicAtTarget();
 
     rollerVelocity = rollerMotor.getVelocity();
     rollerAppliedVolts = rollerMotor.getMotorVoltage();
@@ -123,17 +154,28 @@ public class IntakeIOKraken implements IntakeIO {
         pivotVelocity,
         pivotAppliedVolts,
         pivotCurrent,
+        pivotLeftPosition,
+        pivotLeftVelocity,
+        pivotLeftAppliedVolts,
+        pivotLeftCurrent,
         pivotAtGoal,
+        pivotLeftAtGoal,
         rollerVelocity,
         rollerAppliedVolts,
         rollerCurrent);
 
     pivotMotor.optimizeBusUtilization();
+    pivotLeftMotor.optimizeBusUtilization();
     rollerMotor.optimizeBusUtilization();
   }
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
+    PhoenixUtil.refreshAll();
+
+    inputs.pivotLeftMotorConnected =
+        BaseStatusSignal.isAllGood(
+            pivotLeftPosition, pivotLeftVelocity, pivotLeftAppliedVolts, pivotLeftCurrent);
     inputs.pivotMotorConnected =
         BaseStatusSignal.isAllGood(pivotPosition, pivotVelocity, pivotAppliedVolts, pivotCurrent);
     inputs.rollerMotorConnected =
@@ -145,6 +187,12 @@ public class IntakeIOKraken implements IntakeIO {
     inputs.pivotCurrentAmps = pivotCurrent.getValueAsDouble();
     inputs.pivotAtGoal = pivotAtGoal.getValue();
 
+    inputs.pivotLeftPositionRot = pivotLeftPosition.getValueAsDouble();
+    inputs.pivotLeftVelocityRpm = pivotLeftVelocity.getValueAsDouble() * 60.0;
+    inputs.pivotLeftAppliedVolts = pivotLeftAppliedVolts.getValueAsDouble();
+    inputs.pivotLeftCurrentAmps = pivotLeftCurrent.getValueAsDouble();
+    inputs.pivotLeftAtGoal = pivotLeftAtGoal.getValue();
+
     inputs.rollerVelocityRpm = rollerVelocity.getValueAsDouble() * 60.0;
     inputs.rollerAppliedVolts = rollerAppliedVolts.getValueAsDouble();
     inputs.rollerCurrentAmps = rollerCurrent.getValueAsDouble();
@@ -153,7 +201,9 @@ public class IntakeIOKraken implements IntakeIO {
 
   @Override
   public void setPivotAngle(Angle angle) {
-    pivotMotor.setControl(mmRequest.withPosition(angle));
+    var request = mmRequest.withPosition(angle);
+    pivotMotor.setControl(request);
+    pivotLeftMotor.setControl(request);
   }
 
   @Override

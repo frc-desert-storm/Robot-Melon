@@ -26,6 +26,7 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.util.PhoenixUtil;
 
 public class TurretIOKraken implements TurretIO {
@@ -67,9 +68,9 @@ public class TurretIOKraken implements TurretIO {
   private final NeutralOut neutralOut = new NeutralOut();
 
   public TurretIOKraken() {
-    turnMotor = new TalonFX(TURN_ID);
-    hoodMotor = new TalonFX(HOOD_ID);
-    flywheelMotor = new TalonFX(FLYWHEEL_ID);
+    turnMotor = new TalonFX(TURN_ID, TunerConstants.kCANBus);
+    hoodMotor = new TalonFX(HOOD_ID, TunerConstants.kCANBus);
+    flywheelMotor = new TalonFX(FLYWHEEL_ID, TunerConstants.kCANBus);
 
     turnConfig =
         new TalonFXConfiguration()
@@ -209,7 +210,7 @@ public class TurretIOKraken implements TurretIO {
 
   @Override
   public void setTurnSetpoint(Angle position, AngularVelocity velocity) {
-    // turnMotor.setControl(turnPositionRequest.withPosition(position).withVelocity(velocity));
+    turnMotor.setControl(turnPositionRequest.withPosition(position).withVelocity(velocity));
   }
 
   @Override

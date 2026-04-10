@@ -16,6 +16,14 @@ public interface IntakeIO {
     public double pivotTempCelsius = 0.0;
     public boolean pivotAtGoal = false;
 
+    public boolean pivotLeftMotorConnected = false;
+    public double pivotLeftPositionRot = 0.0;
+    public double pivotLeftVelocityRpm = 0.0;
+    public double pivotLeftAppliedVolts = 0.0;
+    public double pivotLeftCurrentAmps = 0.0;
+    public double pivotLeftTempCelsius = 0.0;
+    public boolean pivotLeftAtGoal = false;
+
     public boolean rollerMotorConnected = false;
     public double rollerVelocityRpm = 0.0;
     public double rollerAppliedVolts = 0.0;

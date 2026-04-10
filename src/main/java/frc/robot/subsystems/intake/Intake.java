@@ -29,12 +29,13 @@ public class Intake extends SubsystemBase {
           this.pivotState = pivotState;
           this.rollerState = rollerState;
           switch (pivotState) {
-            case UP -> io.setPivotAngle(Rotations.of(0.0));
-            case DOWN -> io.setPivotAngle(Rotations.of(1).minus(pivotOffset));
+            case UP -> io.setPivotAngle(Rotations.of(-0.3));
+            case DOWN -> io.setPivotAngle(Rotations.of(0).minus(pivotOffset));
             case IDLE -> io.stopPivot();
           }
           switch (rollerState) {
-            case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1750.0 / 60));
+            case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+            case REVERSE -> io.setRollerSpeed(RotationsPerSecond.of(-1000.0 / 60));
             case IDLE -> io.stopRoller();
           }
         });
@@ -59,6 +60,7 @@ public class Intake extends SubsystemBase {
 
   public enum RollerState {
     INTAKING,
+    REVERSE,
     IDLE
   }
 }
