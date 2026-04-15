@@ -7,10 +7,13 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.TurretConstants.DUCK_TIME;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -18,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -38,6 +42,7 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.Zones;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -155,6 +160,9 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    this.underTrenchTrigger =
+        Zones.TRENCH_DUCK_ZONES.willContain(drive::getPose, drive::getChassisSpeeds, DUCK_TIME);
+
     // Configure the button bindings
     driveBindings();
     configureBindings();
@@ -189,6 +197,8 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
   }
+
+  public final Trigger underTrenchTrigger;
 
   private void configureBindings() {
     controller
@@ -239,14 +249,7 @@ public class RobotContainer {
                 intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE),
                 indexer.setState(Indexer.State.IDLE)));
 
-    //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
-    //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());
-    //    controller.b().onTrue(compositeIntake.intakeRaiseCommand());
-    //     controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
-    //     controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
-
-    //    operator.leftTrigger().whileTrue(compositeIntake.compositeReverseCommand());
-    //    controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
+    underTrenchTrigger.and(DriverStation::isTeleop).whileTrue(turret.duck());
   }
 
   /**

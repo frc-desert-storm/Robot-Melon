@@ -22,6 +22,7 @@ public class Indexer extends SubsystemBase {
             case SCORING -> {
               io.setConveyorSpeed(RotationsPerSecond.of(4000.0 / 60));
               io.setIndexerSpeed(RotationsPerSecond.of(3600.0 / 60));
+              io.setSideRollersSpeed(RotationsPerSecond.of(2000.0 / 60));
             }
             case FEEDING -> {
               io.setConveyorSpeed(RotationsPerSecond.of(2000.0 / 60));
@@ -32,6 +33,7 @@ public class Indexer extends SubsystemBase {
             case IDLE -> {
               io.stopIndexer();
               io.stopConveyor();
+              io.stopSideRollers();
             }
           }
         });
@@ -47,6 +49,7 @@ public class Indexer extends SubsystemBase {
     state = State.IDLE;
     io.stopIndexer();
     io.stopConveyor();
+    io.stopSideRollers();
   }
 
   public State state = State.IDLE;

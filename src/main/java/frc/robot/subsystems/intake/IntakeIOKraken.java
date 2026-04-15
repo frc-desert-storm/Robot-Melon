@@ -88,9 +88,9 @@ public class IntakeIOKraken implements IntakeIO {
     pivotCfg.MotionMagic.MotionMagicCruiseVelocity = PIVOT_CRUISE_RPS;
     pivotCfg.MotionMagic.MotionMagicAcceleration = PIVOT_ACCEL_RPS2;
     pivotCfg.MotionMagic.MotionMagicJerk = PIVOT_JERK_RPS3;
-    pivotCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    pivotCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     pivotCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    pivotCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    pivotCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     pivotCfg.CurrentLimits.StatorCurrentLimitEnable = true;
     PhoenixUtil.tryUntilOk(5, () -> pivotMotor.getConfigurator().apply(pivotCfg, 0.25));
 
@@ -108,9 +108,9 @@ public class IntakeIOKraken implements IntakeIO {
     pivotLeftCfg.MotionMagic.MotionMagicCruiseVelocity = PIVOT_CRUISE_RPS;
     pivotLeftCfg.MotionMagic.MotionMagicAcceleration = PIVOT_ACCEL_RPS2;
     pivotLeftCfg.MotionMagic.MotionMagicJerk = PIVOT_JERK_RPS3;
-    pivotLeftCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    pivotLeftCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     pivotLeftCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    pivotLeftCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    pivotLeftCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     pivotLeftCfg.CurrentLimits.StatorCurrentLimitEnable = true;
     pivotLeftCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     PhoenixUtil.tryUntilOk(5, () -> pivotLeftMotor.getConfigurator().apply(pivotLeftCfg, 0.25));
@@ -171,7 +171,20 @@ public class IntakeIOKraken implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
-    PhoenixUtil.refreshAll();
+    BaseStatusSignal.refreshAll(
+        pivotPosition,
+        pivotVelocity,
+        pivotAppliedVolts,
+        pivotCurrent,
+        pivotLeftPosition,
+        pivotLeftVelocity,
+        pivotLeftAppliedVolts,
+        pivotLeftCurrent,
+        pivotAtGoal,
+        pivotLeftAtGoal,
+        rollerVelocity,
+        rollerAppliedVolts,
+        rollerCurrent);
 
     inputs.pivotLeftMotorConnected =
         BaseStatusSignal.isAllGood(

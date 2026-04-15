@@ -210,7 +210,7 @@ public class TurretIOKraken implements TurretIO {
 
   @Override
   public void setTurnSetpoint(Angle position, AngularVelocity velocity) {
-    turnMotor.setControl(turnPositionRequest.withPosition(position).withVelocity(velocity));
+    // turnMotor.setControl(turnPositionRequest.withPosition(position).withVelocity(velocity));
   }
 
   @Override

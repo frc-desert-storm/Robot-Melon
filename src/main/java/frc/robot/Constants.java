@@ -37,6 +37,16 @@ public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
+  public static class Dimensions {
+    public static final Distance BUMPER_THICKNESS = Inches.of(3.5); // frame to edge of bumper
+    public static final Distance BUMPER_HEIGHT = Inches.of(5); // height from floor to top of bumper
+    public static final Distance FRAME_SIZE_Y = Inches.of(28); // left to right (y-axis)
+    public static final Distance FRAME_SIZE_X = Inches.of(26); // front to back (x-axis)
+
+    public static final Distance FULL_WIDTH = FRAME_SIZE_Y.plus(BUMPER_THICKNESS.times(2));
+    public static final Distance FULL_LENGTH = FRAME_SIZE_X.plus(BUMPER_THICKNESS.times(2));
+  }
+
   public static final class IntakeConstants {
     private IntakeConstants() {}
     /** Gear ratio between pivot motor output shaft and the mechanism. */
@@ -56,6 +66,8 @@ public final class Constants {
 
     public static final int INDEXER_ID = 42;
     public static final int CONVEYOR_CAN_ID = 50;
+    public static final int LEFT_SIDE_ROLLER_CAD_ID = 45;
+    public static final int RIGHT_SIDE_ROLLER_CAD_ID = 44;
   }
 
   public static class TurretConstants {
@@ -125,6 +137,9 @@ public final class Constants {
 
     public static final Angle MIN_HOOD_ANGLE = Degrees.of(21.154316);
     public static final Angle MAX_HOOD_ANGLE = Degrees.of(50);
+
+    public static final Distance EXTRA_DUCK_DISTANCE = Meters.of(0.5);
+    public static final Time DUCK_TIME = Seconds.of(0.4);
 
     public static final Current HOOD_STALL_CURRENT = Amps.of(10);
     public static final AngularVelocity HOOD_STALL_ANGULAR_VELOCITY = RadiansPerSecond.of(0.3);
@@ -236,12 +251,18 @@ public final class Constants {
         Inches.of(181.56); // x position of the center of the trench and bump
     public static final Distance TRENCH_WIDTH = Inches.of(49.86); // y width of the trench
     public static final Distance TRENCH_BUMP_LENGTH =
-        Inches.of(47); // x length of the trench and bump
+        Inches.of(40); // x length of the trench and bump
     public static final Distance TRENCH_BAR_WIDTH = Inches.of(4); // x width of the trench bar
     public static final Distance TRENCH_BLOCK_WIDTH =
         Inches.of(12); // y width of block separating bump and trench
     public static final Distance BUMP_WIDTH = Inches.of(73); // y width of bump
 
-    public static final Distance TRENCH_CENTER = TRENCH_WIDTH.div(2);
+    public static final Distance TRENCH_CENTER = Dimensions.FULL_LENGTH.div(2).plus(Inches.of(7));
+    // public static final Distance TRENCH_CENTER = TRENCH_WIDTH.div(2);
+
+    public static final Distance TOWER_X = Inches.of(49.25);
+    public static final Distance TOWER_CENTER_Y = FIELD_WIDTH.div(2).minus(Inches.of(11.46));
+    public static final Distance TOWER_CENTER_X = Inches.of(18);
+    public static final Distance TOWER_WIDTH = Inches.of(51);
   }
 }
