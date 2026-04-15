@@ -146,44 +146,34 @@ public class IndexerIOKraken implements IndexerIO {
 
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        leftRollerVelocity,
-        leftRollerAppliedVolts,
-        leftRollerCurrent,
-        rightRollerVelocity,
-        rightRollerAppliedVolts,
-        rightRollerCurrent,
-        indexerRollerVelocity,
-        indexerRollerAppliedVolts,
-        indexerRollerCurrent,
-        conveyorRollerVelocity,
-        conveyorRollerAppliedVolts,
-        conveyorRollerCurrent);
-
     inputs.leftRollerConnected =
-        BaseStatusSignal.isAllGood(leftRollerVelocity, leftRollerAppliedVolts, leftRollerCurrent);
+        BaseStatusSignal.refreshAll(leftRollerVelocity, leftRollerAppliedVolts, leftRollerCurrent)
+            .isOK();
 
     inputs.leftRollerSpeed = leftRollerVelocity.getValue();
     inputs.leftRollerAppliedVolts = leftRollerAppliedVolts.getValue();
     inputs.leftRollerCurrent = leftRollerCurrent.getValue();
 
     inputs.rightRollerConnected =
-        BaseStatusSignal.isAllGood(
-            rightRollerVelocity, rightRollerAppliedVolts, rightRollerCurrent);
+        BaseStatusSignal.refreshAll(
+                rightRollerVelocity, rightRollerAppliedVolts, rightRollerCurrent)
+            .isOK();
     inputs.rightRollerSpeed = rightRollerVelocity.getValue();
     inputs.rightRollerAppliedVolts = rightRollerAppliedVolts.getValue();
     inputs.rightRollerCurrent = rightRollerCurrent.getValue();
 
     inputs.indexerRollerConnected =
-        BaseStatusSignal.isAllGood(
-            indexerRollerVelocity, indexerRollerAppliedVolts, indexerRollerCurrent);
+        BaseStatusSignal.refreshAll(
+                indexerRollerVelocity, indexerRollerAppliedVolts, indexerRollerCurrent)
+            .isOK();
     inputs.indexerRollerSpeed = indexerRollerVelocity.getValue();
     inputs.indexerRollerAppliedVolts = indexerRollerAppliedVolts.getValue();
     inputs.indexerRollerCurrent = indexerRollerCurrent.getValue();
 
     inputs.conveyorRollerConnected =
-        BaseStatusSignal.isAllGood(
-            conveyorRollerVelocity, conveyorRollerAppliedVolts, conveyorRollerCurrent);
+        BaseStatusSignal.refreshAll(
+                conveyorRollerVelocity, conveyorRollerAppliedVolts, conveyorRollerCurrent)
+            .isOK();
     inputs.conveyorRollerSpeed = conveyorRollerVelocity.getValue();
     inputs.conveyorRollerAppliedVolts = conveyorRollerAppliedVolts.getValue();
     inputs.conveyorRollerCurrent = conveyorRollerCurrent.getValue();

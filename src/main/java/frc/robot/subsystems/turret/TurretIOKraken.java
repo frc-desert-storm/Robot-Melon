@@ -160,13 +160,14 @@ public class TurretIOKraken implements TurretIO {
   @Override
   public void updateInputs(TurretIOInputs inputs) {
     inputs.turnMotorConnected =
-        BaseStatusSignal.isAllGood(
-            turnPosition,
-            turnSetpoint,
-            turnVelocity,
-            turnAppliedVolts,
-            turnCurrent,
-            turnSupplyCurrent);
+        BaseStatusSignal.refreshAll(
+                turnPosition,
+                turnSetpoint,
+                turnVelocity,
+                turnAppliedVolts,
+                turnCurrent,
+                turnSupplyCurrent)
+            .isOK();
     inputs.turnPosition = turnPosition.getValue();
     inputs.turnSetpoint = Rotations.of(turnSetpoint.getValueAsDouble());
     inputs.turnVelocity = turnVelocity.getValue();
@@ -175,13 +176,14 @@ public class TurretIOKraken implements TurretIO {
     inputs.turnSupplyCurrent = turnSupplyCurrent.getValue();
 
     inputs.hoodMotorConnected =
-        BaseStatusSignal.isAllGood(
-            hoodPosition,
-            hoodSetpoint,
-            hoodVelocity,
-            hoodAppliedVolts,
-            hoodCurrent,
-            hoodSupplyCurrent);
+        BaseStatusSignal.refreshAll(
+                hoodPosition,
+                hoodSetpoint,
+                hoodVelocity,
+                hoodAppliedVolts,
+                hoodCurrent,
+                hoodSupplyCurrent)
+            .isOK();
     inputs.hoodPosition = hoodPosition.getValue();
     inputs.hoodSetpoint = Rotations.of(hoodSetpoint.getValueAsDouble());
     inputs.hoodVelocity = hoodVelocity.getValue();
@@ -190,14 +192,15 @@ public class TurretIOKraken implements TurretIO {
     inputs.hoodSupplyCurrent = hoodSupplyCurrent.getValue();
 
     inputs.flywheelMotorConnected =
-        BaseStatusSignal.isAllGood(
-            flywheelSpeed,
-            flywheelAccel,
-            flywheelSetpointSpeed,
-            flywheelSetpointAccel,
-            flywheelAppliedVolts,
-            flywheelCurrent,
-            flywheelSupplyCurrent);
+        BaseStatusSignal.refreshAll(
+                flywheelSpeed,
+                flywheelAccel,
+                flywheelSetpointSpeed,
+                flywheelSetpointAccel,
+                flywheelAppliedVolts,
+                flywheelCurrent,
+                flywheelSupplyCurrent)
+            .isOK();
     inputs.flywheelSpeed = flywheelSpeed.getValue();
     inputs.flywheelAccel = flywheelAccel.getValue();
     inputs.flywheelSetpointSpeed = RotationsPerSecond.of(flywheelSetpointSpeed.getValueAsDouble());

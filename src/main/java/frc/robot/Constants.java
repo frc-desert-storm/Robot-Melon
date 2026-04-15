@@ -131,8 +131,8 @@ public final class Constants {
     public static final Distance SHOOT_RADIUS = Inches.of(1);
     public static final int LOOKAHEAD_ITERATIONS = 3;
 
-    public static final Angle MIN_TURN_ANGLE = Degrees.of(-105);
-    public static final Angle MAX_TURN_ANGLE = Degrees.of(105);
+    public static final Angle MIN_TURN_ANGLE = Degrees.of(-90);
+    public static final Angle MAX_TURN_ANGLE = Degrees.of(90);
     public static final Angle TURNAROUND_ZONE = Degrees.of(30);
 
     public static final Angle MIN_HOOD_ANGLE = Degrees.of(21.154316);

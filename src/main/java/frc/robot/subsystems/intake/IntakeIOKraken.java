@@ -171,45 +171,31 @@ public class IntakeIOKraken implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        pivotPosition,
-        pivotVelocity,
-        pivotAppliedVolts,
-        pivotCurrent,
-        pivotLeftPosition,
-        pivotLeftVelocity,
-        pivotLeftAppliedVolts,
-        pivotLeftCurrent,
-        pivotAtGoal,
-        pivotLeftAtGoal,
-        rollerVelocity,
-        rollerAppliedVolts,
-        rollerCurrent);
-
     inputs.pivotLeftMotorConnected =
-        BaseStatusSignal.isAllGood(
-            pivotLeftPosition, pivotLeftVelocity, pivotLeftAppliedVolts, pivotLeftCurrent);
+        BaseStatusSignal.refreshAll(
+                pivotLeftPosition, pivotLeftVelocity, pivotLeftAppliedVolts, pivotLeftCurrent)
+            .isOK();
     inputs.pivotMotorConnected =
-        BaseStatusSignal.isAllGood(pivotPosition, pivotVelocity, pivotAppliedVolts, pivotCurrent);
+        BaseStatusSignal.refreshAll(pivotPosition, pivotVelocity, pivotAppliedVolts, pivotCurrent)
+            .isOK();
     inputs.rollerMotorConnected =
-        BaseStatusSignal.isAllGood(pivotPosition, pivotVelocity, pivotAppliedVolts, pivotCurrent);
+        BaseStatusSignal.refreshAll(rollerAppliedVolts, rollerVelocity, rollerCurrent).isOK();
 
-    inputs.pivotPositionRot = pivotPosition.getValueAsDouble();
-    inputs.pivotVelocityRpm = pivotVelocity.getValueAsDouble() * 60.0;
-    inputs.pivotAppliedVolts = pivotAppliedVolts.getValueAsDouble();
-    inputs.pivotCurrentAmps = pivotCurrent.getValueAsDouble();
+    inputs.pivotPosition = pivotPosition.getValue();
+    inputs.pivotVelocity = pivotVelocity.getValue();
+    inputs.pivotAppliedVolts = pivotAppliedVolts.getValue();
+    inputs.pivotCurrentAmps = pivotCurrent.getValue();
     inputs.pivotAtGoal = pivotAtGoal.getValue();
 
-    inputs.pivotLeftPositionRot = pivotLeftPosition.getValueAsDouble();
-    inputs.pivotLeftVelocityRpm = pivotLeftVelocity.getValueAsDouble() * 60.0;
-    inputs.pivotLeftAppliedVolts = pivotLeftAppliedVolts.getValueAsDouble();
-    inputs.pivotLeftCurrentAmps = pivotLeftCurrent.getValueAsDouble();
+    inputs.pivotLeftPosition = pivotLeftPosition.getValue();
+    inputs.pivotLeftVelocity = pivotLeftVelocity.getValue();
+    inputs.pivotLeftAppliedVolts = pivotLeftAppliedVolts.getValue();
+    inputs.pivotLeftCurrentAmps = pivotLeftCurrent.getValue();
     inputs.pivotLeftAtGoal = pivotLeftAtGoal.getValue();
 
-    inputs.rollerVelocityRpm = rollerVelocity.getValueAsDouble() * 60.0;
-    inputs.rollerAppliedVolts = rollerAppliedVolts.getValueAsDouble();
-    inputs.rollerCurrentAmps = rollerCurrent.getValueAsDouble();
-    inputs.rollerRPM = ((rollerMotor.getVelocity().getValueAsDouble()) / (2 * Math.PI)) * 60;
+    inputs.rollerVelocity = rollerVelocity.getValue();
+    inputs.rollerAppliedVolts = rollerAppliedVolts.getValue();
+    inputs.rollerCurrentAmps = rollerCurrent.getValue();
   }
 
   @Override

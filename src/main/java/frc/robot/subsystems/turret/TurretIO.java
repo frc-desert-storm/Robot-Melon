@@ -4,12 +4,6 @@
 
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -20,30 +14,30 @@ import org.littletonrobotics.junction.AutoLog;
 public interface TurretIO {
   @AutoLog
   public static class TurretIOInputs {
-    public boolean turnMotorConnected = false;
-    public Voltage turnAppliedVolts = Volts.of(0.0);
-    public Current turnCurrent = Amps.of(0.0);
-    public Current turnSupplyCurrent = Amps.of(0.0);
-    public Angle turnPosition = Radians.of(0.0);
-    public Angle turnSetpoint = Radians.of(0.0);
-    public AngularVelocity turnVelocity = RadiansPerSecond.of(0.0);
+    public boolean turnMotorConnected;
+    public Voltage turnAppliedVolts;
+    public Current turnCurrent;
+    public Current turnSupplyCurrent;
+    public Angle turnPosition;
+    public Angle turnSetpoint;
+    public AngularVelocity turnVelocity;
 
-    public boolean hoodMotorConnected = false;
-    public Voltage hoodAppliedVolts = Volts.of(0.0);
-    public Current hoodCurrent = Amps.of(0.0);
-    public Current hoodSupplyCurrent = Amps.of(0.0);
-    public Angle hoodPosition = Radians.of(0.0);
-    public Angle hoodSetpoint = Radians.of(0.0);
-    public AngularVelocity hoodVelocity = RadiansPerSecond.of(0.0);
+    public boolean hoodMotorConnected;
+    public Voltage hoodAppliedVolts;
+    public Current hoodCurrent;
+    public Current hoodSupplyCurrent;
+    public Angle hoodPosition;
+    public Angle hoodSetpoint;
+    public AngularVelocity hoodVelocity;
 
-    public boolean flywheelMotorConnected = false;
-    public Voltage flywheelAppliedVolts = Volts.of(0.0);
-    public Current flywheelCurrent = Amps.of(0.0);
-    public Current flywheelSupplyCurrent = Amps.of(0.0);
-    public AngularVelocity flywheelSpeed = RadiansPerSecond.of(0.0);
-    public AngularAcceleration flywheelAccel = RadiansPerSecondPerSecond.of(0.0);
-    public AngularVelocity flywheelSetpointSpeed = RadiansPerSecond.of(0.0);
-    public AngularAcceleration flywheelSetpointAccel = RadiansPerSecondPerSecond.of(0.0);
+    public boolean flywheelMotorConnected;
+    public Voltage flywheelAppliedVolts;
+    public Current flywheelCurrent;
+    public Current flywheelSupplyCurrent;
+    public AngularVelocity flywheelSpeed;
+    public AngularAcceleration flywheelAccel;
+    public AngularVelocity flywheelSetpointSpeed;
+    public AngularAcceleration flywheelSetpointAccel;
   }
 
   public default void updateInputs(TurretIOInputs inputs) {}
