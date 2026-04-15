@@ -182,7 +182,7 @@ public class IndexerIOKraken implements IndexerIO {
   @Override
   public void setSideRollersSpeed(AngularVelocity speed) {
     leftRollerMotor.setControl(
-        velocityReq.withVelocity(speed.minus(RotationsPerSecond.of(1200.0 / 60))));
+        velocityReq.withVelocity(speed.minus(RotationsPerSecond.of(2000.0 / 60))));
     rightRollerMotor.setControl(velocityReq.withVelocity(speed));
   }
 

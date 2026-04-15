@@ -88,7 +88,7 @@ public final class Constants {
         new Slot0Configs().withKP(256).withKD(5).withKS(0.28);
 
     public static final Slot0Configs FLYWHEEL_GAINS =
-        new Slot0Configs().withKP(8).withKD(0.4).withKS(10).withKV(0.3);
+        new Slot0Configs().withKP(10).withKD(1.0).withKS(10).withKV(0.3);
 
     public static final CurrentLimitsConfigs TURN_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(30);

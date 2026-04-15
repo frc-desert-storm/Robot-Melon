@@ -29,8 +29,8 @@ public class Intake extends SubsystemBase {
           this.pivotState = pivotState;
           this.rollerState = rollerState;
           switch (pivotState) {
-            case UP -> io.setPivotAngle(Rotations.of(-0.3));
-            case DOWN -> io.setPivotAngle(Rotations.of(0).minus(pivotOffset));
+            case UP -> io.setPivotAngle(Degrees.of(-50));
+            case DOWN -> io.setPivotAngle(Degrees.of(-2).minus(pivotOffset));
             case IDLE -> io.stopPivot();
           }
           switch (rollerState) {

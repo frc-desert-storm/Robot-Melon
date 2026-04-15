@@ -234,7 +234,8 @@ public class RobotContainer {
 
     controller.povDown().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
-    controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
+    controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING));
+    controller.povUp().onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
 
     controller
         .povRight()

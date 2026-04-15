@@ -21,8 +21,8 @@ public class Indexer extends SubsystemBase {
           switch (state) {
             case SCORING -> {
               io.setConveyorSpeed(RotationsPerSecond.of(4000.0 / 60));
-              io.setIndexerSpeed(RotationsPerSecond.of(3600.0 / 60));
-              io.setSideRollersSpeed(RotationsPerSecond.of(2000.0 / 60));
+              io.setIndexerSpeed(RotationsPerSecond.of(6000.0 / 60));
+              io.setSideRollersSpeed(RotationsPerSecond.of(4000.0 / 60));
             }
             case FEEDING -> {
               io.setConveyorSpeed(RotationsPerSecond.of(2000.0 / 60));
