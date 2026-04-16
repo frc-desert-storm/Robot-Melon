@@ -250,6 +250,17 @@ public class RobotContainer {
                 intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE),
                 indexer.setState(Indexer.State.IDLE)));
 
+    controller
+        .povLeft()
+        .onTrue(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.TUNING), indexer.setState(Indexer.State.SCORING)));
+    controller
+        .povLeft()
+        .onFalse(
+            new ParallelCommandGroup(
+                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
+
     underTrenchTrigger.and(DriverStation::isTeleop).whileTrue(turret.duck());
   }
 

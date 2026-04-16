@@ -107,7 +107,7 @@ public final class Constants {
     public static final MotorOutputConfigs HOOD_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
             .withInverted(InvertedValue.Clockwise_Positive)
-            .withNeutralMode(NeutralModeValue.Brake);
+            .withNeutralMode(NeutralModeValue.Coast);
 
     public static final MotorOutputConfigs FLYWHEEL_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
@@ -209,12 +209,18 @@ public final class Constants {
       //
       //      SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
       //      TOF_MAP.put(1.55, 1.23);
+      SHOT_MAP.put(1.75, new TurretCalculator.ShotData(RPM.of(2600), Degrees.of(22)));
+      TOF_MAP.put(1.75, 1.02);
       SHOT_MAP.put(2.0, new TurretCalculator.ShotData(RPM.of(2750), Degrees.of(22)));
       TOF_MAP.put(2.0, 1.05);
       SHOT_MAP.put(3.2, new TurretCalculator.ShotData(RPM.of(3100), Degrees.of(22)));
       TOF_MAP.put(3.2, 1.16);
+      SHOT_MAP.put(4.0, new TurretCalculator.ShotData(RPM.of(3250), Degrees.of(24)));
+      TOF_MAP.put(4.0, 1.25);
       SHOT_MAP.put(5.0, new TurretCalculator.ShotData(RPM.of(3550), Degrees.of(28)));
       TOF_MAP.put(5.0, 1.33);
+      SHOT_MAP.put(6.0, new TurretCalculator.ShotData(RPM.of(4200), Degrees.of(28)));
+      TOF_MAP.put(6.0, 1.40);
     }
 
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);

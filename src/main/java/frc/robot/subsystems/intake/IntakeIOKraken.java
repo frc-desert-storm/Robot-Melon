@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.Constants.IntakeConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -167,6 +168,9 @@ public class IntakeIOKraken implements IntakeIO {
     pivotMotor.optimizeBusUtilization();
     pivotLeftMotor.optimizeBusUtilization();
     rollerMotor.optimizeBusUtilization();
+
+    pivotMotor.setPosition(Radians.of(-2.26));
+    pivotLeftMotor.setPosition(Radians.of(-2.26));
   }
 
   @Override
