@@ -28,6 +28,7 @@ public class Indexer extends SubsystemBase {
               io.setConveyorSpeed(RotationsPerSecond.of(2000.0 / 60));
             }
             case REVERSE -> {
+              io.setIndexerSpeed(RotationsPerSecond.of(-2000.0 / 60));
               io.setConveyorSpeed(RotationsPerSecond.of(-2000.0 / 60));
             }
             case IDLE -> {

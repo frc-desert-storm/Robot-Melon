@@ -140,6 +140,8 @@ public class RobotContainer {
             turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
     NamedCommands.registerCommand(
         "Intake down", intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+    NamedCommands.registerCommand(
+        "Intake Up", intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -214,13 +216,13 @@ public class RobotContainer {
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
     controller
-        .rightBumper()
+        .leftBumper()
         .onTrue(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.PASSING),
                 indexer.setState(Indexer.State.SCORING)));
     controller
-        .rightBumper()
+        .leftBumper()
         .onFalse(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
@@ -251,12 +253,12 @@ public class RobotContainer {
                 indexer.setState(Indexer.State.IDLE)));
 
     controller
-        .povLeft()
+        .rightBumper()
         .onTrue(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.TUNING), indexer.setState(Indexer.State.SCORING)));
     controller
-        .povLeft()
+        .rightBumper()
         .onFalse(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
