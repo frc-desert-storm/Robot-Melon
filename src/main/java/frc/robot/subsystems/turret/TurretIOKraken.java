@@ -26,6 +26,7 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.util.PhoenixUtil;
 
 public class TurretIOKraken implements TurretIO {
@@ -67,9 +68,9 @@ public class TurretIOKraken implements TurretIO {
   private final NeutralOut neutralOut = new NeutralOut();
 
   public TurretIOKraken() {
-    turnMotor = new TalonFX(TURN_ID);
-    hoodMotor = new TalonFX(HOOD_ID);
-    flywheelMotor = new TalonFX(FLYWHEEL_ID);
+    turnMotor = new TalonFX(TURN_ID, TunerConstants.kCANBus);
+    hoodMotor = new TalonFX(HOOD_ID, TunerConstants.kCANBus);
+    flywheelMotor = new TalonFX(FLYWHEEL_ID, TunerConstants.kCANBus);
 
     turnConfig =
         new TalonFXConfiguration()
@@ -159,13 +160,14 @@ public class TurretIOKraken implements TurretIO {
   @Override
   public void updateInputs(TurretIOInputs inputs) {
     inputs.turnMotorConnected =
-        BaseStatusSignal.isAllGood(
-            turnPosition,
-            turnSetpoint,
-            turnVelocity,
-            turnAppliedVolts,
-            turnCurrent,
-            turnSupplyCurrent);
+        BaseStatusSignal.refreshAll(
+                turnPosition,
+                turnSetpoint,
+                turnVelocity,
+                turnAppliedVolts,
+                turnCurrent,
+                turnSupplyCurrent)
+            .isOK();
     inputs.turnPosition = turnPosition.getValue();
     inputs.turnSetpoint = Rotations.of(turnSetpoint.getValueAsDouble());
     inputs.turnVelocity = turnVelocity.getValue();
@@ -174,13 +176,14 @@ public class TurretIOKraken implements TurretIO {
     inputs.turnSupplyCurrent = turnSupplyCurrent.getValue();
 
     inputs.hoodMotorConnected =
-        BaseStatusSignal.isAllGood(
-            hoodPosition,
-            hoodSetpoint,
-            hoodVelocity,
-            hoodAppliedVolts,
-            hoodCurrent,
-            hoodSupplyCurrent);
+        BaseStatusSignal.refreshAll(
+                hoodPosition,
+                hoodSetpoint,
+                hoodVelocity,
+                hoodAppliedVolts,
+                hoodCurrent,
+                hoodSupplyCurrent)
+            .isOK();
     inputs.hoodPosition = hoodPosition.getValue();
     inputs.hoodSetpoint = Rotations.of(hoodSetpoint.getValueAsDouble());
     inputs.hoodVelocity = hoodVelocity.getValue();
@@ -189,14 +192,15 @@ public class TurretIOKraken implements TurretIO {
     inputs.hoodSupplyCurrent = hoodSupplyCurrent.getValue();
 
     inputs.flywheelMotorConnected =
-        BaseStatusSignal.isAllGood(
-            flywheelSpeed,
-            flywheelAccel,
-            flywheelSetpointSpeed,
-            flywheelSetpointAccel,
-            flywheelAppliedVolts,
-            flywheelCurrent,
-            flywheelSupplyCurrent);
+        BaseStatusSignal.refreshAll(
+                flywheelSpeed,
+                flywheelAccel,
+                flywheelSetpointSpeed,
+                flywheelSetpointAccel,
+                flywheelAppliedVolts,
+                flywheelCurrent,
+                flywheelSupplyCurrent)
+            .isOK();
     inputs.flywheelSpeed = flywheelSpeed.getValue();
     inputs.flywheelAccel = flywheelAccel.getValue();
     inputs.flywheelSetpointSpeed = RotationsPerSecond.of(flywheelSetpointSpeed.getValueAsDouble());
@@ -209,7 +213,7 @@ public class TurretIOKraken implements TurretIO {
 
   @Override
   public void setTurnSetpoint(Angle position, AngularVelocity velocity) {
-    // turnMotor.setControl(turnPositionRequest.withPosition(position).withVelocity(velocity));
+    turnMotor.setControl(turnPositionRequest.withPosition(position).withVelocity(velocity));
   }
 
   @Override

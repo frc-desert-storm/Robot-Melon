@@ -1,7 +1,8 @@
 package frc.robot.subsystems.intake;
 
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
+import static edu.wpi.first.units.Units.*;
+
+import edu.wpi.first.units.measure.*;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
@@ -9,20 +10,27 @@ public interface IntakeIO {
   @AutoLog
   class IntakeIOInputs {
     public boolean pivotMotorConnected = false;
-    public double pivotPositionRot = 0.0;
-    public double pivotVelocityRpm = 0.0;
-    public double pivotAppliedVolts = 0.0;
-    public double pivotCurrentAmps = 0.0;
-    public double pivotTempCelsius = 0.0;
+    public Angle pivotPosition = Degrees.of(0.0);
+    public AngularVelocity pivotVelocity = RPM.of(0.0);
+    public Voltage pivotAppliedVolts = Volts.of(0.0);
+    public Current pivotCurrentAmps = Amps.of(0.0);
+    public Temperature pivotTemp = Celsius.of(0.0);
     public boolean pivotAtGoal = false;
 
+    public boolean pivotLeftMotorConnected = false;
+    public Angle pivotLeftPosition = Degrees.of(0.0);
+    public AngularVelocity pivotLeftVelocity = RPM.of(0.0);
+    public Voltage pivotLeftAppliedVolts = Volts.of(0.0);
+    public Current pivotLeftCurrentAmps = Amps.of(0.0);
+    public Temperature pivotLeftTemp = Celsius.of(0.0);
+    public boolean pivotLeftAtGoal;
+
     public boolean rollerMotorConnected = false;
-    public double rollerVelocityRpm = 0.0;
-    public double rollerAppliedVolts = 0.0;
-    public double rollerCurrentAmps = 0.0;
-    public double rollerTempCelsius = 0.0;
-    public double rollerRPM = 0.0;
-    public double rollerSetpointRPM = 0.0;
+    public AngularVelocity rollerVelocity = RPM.of(0.0);
+    public Voltage rollerAppliedVolts = Volts.of(0.0);
+    public Current rollerCurrentAmps = Amps.of(0.0);
+    public Temperature rollerTemp = Celsius.of(0.0);
+    public AngularVelocity rollerSetpoint = RPM.of(0.0);
   }
 
   /** Update logged inputs. Called every robot loop. */

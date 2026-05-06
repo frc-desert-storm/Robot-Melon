@@ -157,6 +157,16 @@ public class Turret extends SubsystemBase {
                   io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
                   io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
                   break;
+                case DUCKING:
+                  io.setHoodAngle(MIN_HOOD_ANGLE);
+                  Angle desired =
+                      fieldSpeedsSupplier.get().vxMetersPerSecond > 0
+                          ? Degrees.zero()
+                          : Degrees.of(180);
+                  io.setTurnSetpoint(
+                      TurretCalculator.calculateAzimuthAngle(
+                          poseSupplier.get(), desired, inputs.turnPosition),
+                      RadiansPerSecond.of(0));
                 case OFF:
                   io.stopFlywheel();
                   io.stopHood();
@@ -232,6 +242,17 @@ public class Turret extends SubsystemBase {
         .finallyDo(() -> goal = TurretGoal.OFF)
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Disable Turret");
+  }
+
+  public Command duck() {
+    return Commands.startEnd(
+            () -> {
+              this.setGoal(TurretGoal.DUCKING);
+            },
+            () -> {
+              this.setGoal(TurretGoal.IDLE);
+            })
+        .withName("Turret Duck");
   }
 
   public Command manualOverride() {
@@ -389,6 +410,7 @@ public class Turret extends SubsystemBase {
     PASSING,
     IDLE,
     TUNING,
+    DUCKING,
     OFF,
     MANUAL_OVERRIDE,
     DISABLED

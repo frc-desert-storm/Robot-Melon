@@ -7,31 +7,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Intake down"
+            "name": "Intake Up"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 3.0
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Trench to Outpost 1"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 5.0
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Trench to Outpost 2"
+            "waitTime": 1.0
           }
         },
         {
@@ -43,7 +25,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 8.0
+            "waitTime": 14.0
           }
         },
         {

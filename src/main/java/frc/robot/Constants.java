@@ -37,20 +37,37 @@ public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
+  public static class Dimensions {
+    public static final Distance BUMPER_THICKNESS = Inches.of(3.5); // frame to edge of bumper
+    public static final Distance BUMPER_HEIGHT = Inches.of(5); // height from floor to top of bumper
+    public static final Distance FRAME_SIZE_Y = Inches.of(28); // left to right (y-axis)
+    public static final Distance FRAME_SIZE_X = Inches.of(26); // front to back (x-axis)
+
+    public static final Distance FULL_WIDTH = FRAME_SIZE_Y.plus(BUMPER_THICKNESS.times(2));
+    public static final Distance FULL_LENGTH = FRAME_SIZE_X.plus(BUMPER_THICKNESS.times(2));
+  }
+
   public static final class IntakeConstants {
     private IntakeConstants() {}
+    /** Gear ratio between pivot motor output shaft and the mechanism. */
+    public static final double PIVOT_GEAR_RATIO =
+        (64.0 / 14) * (64.0 / 16) * (36.0 / 14); // 14:64 gear, 16:64 gear, 14:36 chain;
 
-    public static final int PIVOT_CAN_ID = 41;
-    public static final int ROLLER_CAN_ID = 49;
+    /** Gear ratio between roller motor output shaft and the roller mechanism. */
+    public static final double ROLLER_GEAR_RATIO = 1.0;
+
+    public static final int PIVOT_FOLLOWER_CAN_ID = 41;
+    public static final int PIVOT_CAN_ID = 49;
+    public static final int ROLLER_CAN_ID = 48;
   }
 
   public static final class IndexerConstants {
     private IndexerConstants() {}
 
-    public static final int LEFT_ROLLER_ID = 45;
-    public static final int RIGHT_ROLLER_ID = 48;
-    public static final int INDEXER_ID = 44;
-    public static final int CONVEYOR_CAN_ID = 42;
+    public static final int INDEXER_ID = 42;
+    public static final int CONVEYOR_CAN_ID = 50;
+    public static final int LEFT_SIDE_ROLLER_CAD_ID = 45;
+    public static final int RIGHT_SIDE_ROLLER_CAD_ID = 44;
   }
 
   public static class TurretConstants {
@@ -71,7 +88,7 @@ public final class Constants {
         new Slot0Configs().withKP(256).withKD(5).withKS(0.28);
 
     public static final Slot0Configs FLYWHEEL_GAINS =
-        new Slot0Configs().withKP(8).withKD(0.4).withKS(10).withKV(0.3);
+        new Slot0Configs().withKP(10).withKD(1.0).withKS(10).withKV(0.3);
 
     public static final CurrentLimitsConfigs TURN_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(30);
@@ -90,7 +107,7 @@ public final class Constants {
     public static final MotorOutputConfigs HOOD_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
             .withInverted(InvertedValue.Clockwise_Positive)
-            .withNeutralMode(NeutralModeValue.Brake);
+            .withNeutralMode(NeutralModeValue.Coast);
 
     public static final MotorOutputConfigs FLYWHEEL_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
@@ -114,12 +131,15 @@ public final class Constants {
     public static final Distance SHOOT_RADIUS = Inches.of(1);
     public static final int LOOKAHEAD_ITERATIONS = 3;
 
-    public static final Angle MIN_TURN_ANGLE = Degrees.of(-105);
-    public static final Angle MAX_TURN_ANGLE = Degrees.of(105);
+    public static final Angle MIN_TURN_ANGLE = Degrees.of(-90);
+    public static final Angle MAX_TURN_ANGLE = Degrees.of(90);
     public static final Angle TURNAROUND_ZONE = Degrees.of(30);
 
     public static final Angle MIN_HOOD_ANGLE = Degrees.of(21.154316);
     public static final Angle MAX_HOOD_ANGLE = Degrees.of(50);
+
+    public static final Distance EXTRA_DUCK_DISTANCE = Meters.of(0.5);
+    public static final Time DUCK_TIME = Seconds.of(0.4);
 
     public static final Current HOOD_STALL_CURRENT = Amps.of(10);
     public static final AngularVelocity HOOD_STALL_ANGULAR_VELOCITY = RadiansPerSecond.of(0.3);
@@ -189,12 +209,18 @@ public final class Constants {
       //
       //      SHOT_MAP.put(1.55, new TurretCalculator.ShotData(RPM.of(2235), Degrees.of(15)));
       //      TOF_MAP.put(1.55, 1.23);
+      SHOT_MAP.put(1.75, new TurretCalculator.ShotData(RPM.of(2600), Degrees.of(22)));
+      TOF_MAP.put(1.75, 1.02);
       SHOT_MAP.put(2.0, new TurretCalculator.ShotData(RPM.of(2750), Degrees.of(22)));
       TOF_MAP.put(2.0, 1.05);
       SHOT_MAP.put(3.2, new TurretCalculator.ShotData(RPM.of(3100), Degrees.of(22)));
       TOF_MAP.put(3.2, 1.16);
+      SHOT_MAP.put(4.0, new TurretCalculator.ShotData(RPM.of(3250), Degrees.of(24)));
+      TOF_MAP.put(4.0, 1.25);
       SHOT_MAP.put(5.0, new TurretCalculator.ShotData(RPM.of(3550), Degrees.of(28)));
       TOF_MAP.put(5.0, 1.33);
+      SHOT_MAP.put(6.0, new TurretCalculator.ShotData(RPM.of(4200), Degrees.of(28)));
+      TOF_MAP.put(6.0, 1.40);
     }
 
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);
@@ -231,12 +257,18 @@ public final class Constants {
         Inches.of(181.56); // x position of the center of the trench and bump
     public static final Distance TRENCH_WIDTH = Inches.of(49.86); // y width of the trench
     public static final Distance TRENCH_BUMP_LENGTH =
-        Inches.of(47); // x length of the trench and bump
+        Inches.of(40); // x length of the trench and bump
     public static final Distance TRENCH_BAR_WIDTH = Inches.of(4); // x width of the trench bar
     public static final Distance TRENCH_BLOCK_WIDTH =
         Inches.of(12); // y width of block separating bump and trench
     public static final Distance BUMP_WIDTH = Inches.of(73); // y width of bump
 
-    public static final Distance TRENCH_CENTER = TRENCH_WIDTH.div(2);
+    public static final Distance TRENCH_CENTER = Dimensions.FULL_LENGTH.div(2).plus(Inches.of(7));
+    // public static final Distance TRENCH_CENTER = TRENCH_WIDTH.div(2);
+
+    public static final Distance TOWER_X = Inches.of(49.25);
+    public static final Distance TOWER_CENTER_Y = FIELD_WIDTH.div(2).minus(Inches.of(11.46));
+    public static final Distance TOWER_CENTER_X = Inches.of(18);
+    public static final Distance TOWER_WIDTH = Inches.of(51);
   }
 }

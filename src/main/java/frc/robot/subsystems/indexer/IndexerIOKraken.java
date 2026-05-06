@@ -14,6 +14,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.generated.TunerConstants;
 import frc.robot.util.PhoenixUtil;
 
 /**
@@ -53,17 +54,17 @@ public class IndexerIOKraken implements IndexerIO {
   private final NeutralOut neutralOut = new NeutralOut();
 
   public IndexerIOKraken() {
-    leftRollerMotor = new TalonFX(LEFT_ROLLER_ID);
-    rightRollerMotor = new TalonFX(RIGHT_ROLLER_ID);
-    indexerMotor = new TalonFX(INDEXER_ID);
-    conveyorMotor = new TalonFX(CONVEYOR_CAN_ID);
+    leftRollerMotor = new TalonFX(LEFT_SIDE_ROLLER_CAD_ID, TunerConstants.kCANBus);
+    rightRollerMotor = new TalonFX(RIGHT_SIDE_ROLLER_CAD_ID, TunerConstants.kCANBus);
+    indexerMotor = new TalonFX(INDEXER_ID, TunerConstants.kCANBus);
+    conveyorMotor = new TalonFX(CONVEYOR_CAN_ID, TunerConstants.kCANBus);
 
     var leftRollerCfg = new TalonFXConfiguration();
-    leftRollerCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    leftRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    leftRollerCfg.CurrentLimits.SupplyCurrentLimit = 40.0;
+    leftRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    leftRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    leftRollerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     leftRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    leftRollerCfg.CurrentLimits.StatorCurrentLimit = 60.0;
+    leftRollerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     leftRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
 
     leftRollerCfg.Slot0.kP = 10.0;
@@ -71,8 +72,8 @@ public class IndexerIOKraken implements IndexerIO {
     PhoenixUtil.tryUntilOk(5, () -> leftRollerMotor.getConfigurator().apply(leftRollerCfg, 0.25));
 
     var rightRollerCfg = new TalonFXConfiguration();
-    rightRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    rightRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    rightRollerCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    rightRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     rightRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     rightRollerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
@@ -83,7 +84,7 @@ public class IndexerIOKraken implements IndexerIO {
     PhoenixUtil.tryUntilOk(5, () -> rightRollerMotor.getConfigurator().apply(rightRollerCfg, 0.25));
 
     var indexerCfg = new TalonFXConfiguration();
-    indexerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    indexerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     indexerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
     indexerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     indexerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
@@ -94,7 +95,8 @@ public class IndexerIOKraken implements IndexerIO {
     PhoenixUtil.tryUntilOk(5, () -> indexerMotor.getConfigurator().apply(indexerCfg, 0.25));
 
     var conveyorRollerCfg = new TalonFXConfiguration();
-    conveyorRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    conveyorRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    conveyorRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     conveyorRollerCfg.CurrentLimits.SupplyCurrentLimit = 35.0;
     conveyorRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     conveyorRollerCfg.CurrentLimits.StatorCurrentLimit = 50.0;
@@ -145,29 +147,33 @@ public class IndexerIOKraken implements IndexerIO {
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
     inputs.leftRollerConnected =
-        BaseStatusSignal.isAllGood(leftRollerVelocity, leftRollerAppliedVolts, leftRollerCurrent);
+        BaseStatusSignal.refreshAll(leftRollerVelocity, leftRollerAppliedVolts, leftRollerCurrent)
+            .isOK();
 
     inputs.leftRollerSpeed = leftRollerVelocity.getValue();
     inputs.leftRollerAppliedVolts = leftRollerAppliedVolts.getValue();
     inputs.leftRollerCurrent = leftRollerCurrent.getValue();
 
     inputs.rightRollerConnected =
-        BaseStatusSignal.isAllGood(
-            rightRollerVelocity, rightRollerAppliedVolts, rightRollerCurrent);
+        BaseStatusSignal.refreshAll(
+                rightRollerVelocity, rightRollerAppliedVolts, rightRollerCurrent)
+            .isOK();
     inputs.rightRollerSpeed = rightRollerVelocity.getValue();
     inputs.rightRollerAppliedVolts = rightRollerAppliedVolts.getValue();
     inputs.rightRollerCurrent = rightRollerCurrent.getValue();
 
     inputs.indexerRollerConnected =
-        BaseStatusSignal.isAllGood(
-            indexerRollerVelocity, indexerRollerAppliedVolts, indexerRollerCurrent);
+        BaseStatusSignal.refreshAll(
+                indexerRollerVelocity, indexerRollerAppliedVolts, indexerRollerCurrent)
+            .isOK();
     inputs.indexerRollerSpeed = indexerRollerVelocity.getValue();
     inputs.indexerRollerAppliedVolts = indexerRollerAppliedVolts.getValue();
     inputs.indexerRollerCurrent = indexerRollerCurrent.getValue();
 
     inputs.conveyorRollerConnected =
-        BaseStatusSignal.isAllGood(
-            conveyorRollerVelocity, conveyorRollerAppliedVolts, conveyorRollerCurrent);
+        BaseStatusSignal.refreshAll(
+                conveyorRollerVelocity, conveyorRollerAppliedVolts, conveyorRollerCurrent)
+            .isOK();
     inputs.conveyorRollerSpeed = conveyorRollerVelocity.getValue();
     inputs.conveyorRollerAppliedVolts = conveyorRollerAppliedVolts.getValue();
     inputs.conveyorRollerCurrent = conveyorRollerCurrent.getValue();
@@ -176,7 +182,7 @@ public class IndexerIOKraken implements IndexerIO {
   @Override
   public void setSideRollersSpeed(AngularVelocity speed) {
     leftRollerMotor.setControl(
-        velocityReq.withVelocity(speed.minus(RotationsPerSecond.of(1200.0 / 60))));
+        velocityReq.withVelocity(speed.minus(RotationsPerSecond.of(2000.0 / 60))));
     rightRollerMotor.setControl(velocityReq.withVelocity(speed));
   }
 
