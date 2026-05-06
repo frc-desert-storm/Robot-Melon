@@ -7,13 +7,10 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.TurretConstants.DUCK_TIME;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -21,20 +18,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIOPigeon2;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOSim;
-import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOKraken;
 import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.turret.Turret;
@@ -42,7 +34,9 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
-import frc.robot.util.Zones;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -54,8 +48,10 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private SwerveDriveSimulation driveSimulation = null;
   private final Turret turret;
   private final Vision vision;
+  private final Intake intake;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -63,9 +59,6 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-
-  private final Intake intake =
-      new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
   private final Indexer indexer =
       new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
@@ -82,11 +75,13 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontLeft),
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight));
+                new ModuleIOTalonFX(TunerConstants.BackRight),
+                (robotPose) -> {});
+        intake = new Intake(new IntakeIOKraken());
         turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                drive,
                 new VisionIOPhotonVision(
                     VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
                 new VisionIOPhotonVision(
@@ -95,25 +90,33 @@ public class RobotContainer {
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+        driveSimulation =
+            new SwerveDriveSimulation(
+                Drive.getMapleSimConfig(), new Pose2d(3, 3, new Rotation2d()));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight));
-        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]),
+                driveSimulation::setSimulationWorldPose);
+        intake = new Intake(new IntakeIOSim());
+        turret =
+            new Turret(
+                new TurretIOSim(intake, driveSimulation), drive::getPose, drive::getChassisSpeeds);
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                drive,
                 new VisionIOPhotonVisionSim(
                     VisionConstants.leftCameraName,
                     VisionConstants.robotToLeftCamera,
-                    drive::getPose),
+                    driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
                     VisionConstants.rightCameraName,
                     VisionConstants.robotToRightCamera,
-                    drive::getPose));
+                    driveSimulation::getSimulatedDriveTrainPose));
         break;
 
       default:
@@ -124,9 +127,11 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
-                new ModuleIO() {});
+                new ModuleIO() {},
+                (robotPose) -> {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        intake = new Intake(new IntakeIO() {});
+        vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
         break;
     }
 
@@ -140,8 +145,6 @@ public class RobotContainer {
             turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
     NamedCommands.registerCommand(
         "Intake down", intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
-    NamedCommands.registerCommand(
-        "Intake Up", intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -161,9 +164,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-    this.underTrenchTrigger =
-        Zones.TRENCH_DUCK_ZONES.willContain(drive::getPose, drive::getChassisSpeeds, DUCK_TIME);
 
     // Configure the button bindings
     driveBindings();
@@ -194,13 +194,11 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(
                     () ->
-                        drive.setPose(
+                        drive.resetOdometry(
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
   }
-
-  public final Trigger underTrenchTrigger;
 
   private void configureBindings() {
     controller
@@ -216,54 +214,48 @@ public class RobotContainer {
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
     controller
-        .leftBumper()
+        .rightBumper()
         .onTrue(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.PASSING),
                 indexer.setState(Indexer.State.SCORING)));
     controller
-        .leftBumper()
+        .rightBumper()
         .onFalse(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
     controller
         .leftTrigger()
-        .onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
+        .onTrue(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.INTAKING));
     controller
         .leftTrigger()
-        .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+        .onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
 
     controller.povDown().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+    controller.povDown().onFalse(intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE));
 
-    controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING));
-    controller.povUp().onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+    controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
 
     controller
         .povRight()
-        .onTrue(
-            new ParallelCommandGroup(
-                intake.setState(Intake.PivotState.DOWN, Intake.RollerState.REVERSE),
-                indexer.setState(Indexer.State.REVERSE)));
-    controller
-        .povRight()
-        .onFalse(
-            new ParallelCommandGroup(
-                intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE),
-                indexer.setState(Indexer.State.IDLE)));
-
-    controller
-        .rightBumper()
         .onTrue(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.TUNING), indexer.setState(Indexer.State.SCORING)));
     controller
-        .rightBumper()
+        .povRight()
         .onFalse(
             new ParallelCommandGroup(
                 turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
 
-    underTrenchTrigger.and(DriverStation::isTeleop).whileTrue(turret.duck());
+    //    controller.rightBumper().whileTrue(compositeIntake.loadShooter());
+    //    controller.leftTrigger().whileTrue(compositeIntake.compositeForwardCommandandPivot());
+    //    controller.b().onTrue(compositeIntake.intakeRaiseCommand());
+    //     controller.rightBumper().onTrue(turret.setGoal(Turret.TurretGoal.TUNING));
+    //     controller.rightBumper().onFalse(turret.setGoal(Turret.TurretGoal.OFF));
+
+    //    operator.leftTrigger().whileTrue(compositeIntake.compositeReverseCommand());
+    //    controller.povRight().whileTrue(compositeIntake.intakeZeroCommand());
   }
 
   /**
@@ -280,5 +272,22 @@ public class RobotContainer {
     intake.stop();
     indexer.stop();
     drive.stop();
+  }
+
+  public void resetSimulationField() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
+  }
+
+  public void updateSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    SimulatedArena.getInstance().simulationPeriodic();
+    Logger.recordOutput(
+        "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+        "FieldSimulation/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
   }
 }
