@@ -167,6 +167,7 @@ public class Turret extends SubsystemBase {
                       TurretCalculator.calculateAzimuthAngle(
                           poseSupplier.get(), desired, inputs.turnPosition),
                       RadiansPerSecond.of(0));
+                  break;
                 case OFF:
                   io.stopFlywheel();
                   io.stopHood();
@@ -245,12 +246,28 @@ public class Turret extends SubsystemBase {
   }
 
   public Command duck() {
-    return Commands.startEnd(
+    return this.startEnd(
             () -> {
-              this.setGoal(TurretGoal.DUCKING);
+              if (this.goal != TurretGoal.DISABLED && this.goal != TurretGoal.MANUAL_OVERRIDE) {
+                this.goal = TurretGoal.DUCKING;
+                io.setHoodAngle(MIN_HOOD_ANGLE);
+                Angle desired =
+                    fieldSpeedsSupplier.get().vxMetersPerSecond > 0
+                        ? Degrees.zero()
+                        : Degrees.of(180);
+                io.setTurnSetpoint(
+                    TurretCalculator.calculateAzimuthAngle(
+                        poseSupplier.get(), desired, inputs.turnPosition),
+                    RadiansPerSecond.of(0));
+              }
             },
             () -> {
-              this.setGoal(TurretGoal.IDLE);
+              if (this.goal != TurretGoal.DISABLED && this.goal != TurretGoal.MANUAL_OVERRIDE) {
+                this.goal = TurretGoal.IDLE;
+                io.stopFlywheel();
+                io.stopHood();
+                io.stopTurn();
+              }
             })
         .withName("Turret Duck");
   }
