@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -127,65 +126,57 @@ public class Turret extends SubsystemBase {
                     .transformBy(ROBOT_TO_TURRET_TRANSFORM),
             fieldSpeedsSupplier);
 
-    SmartDashboard.putData("Overrides/Turret Disable", disable());
-    SmartDashboard.putData("Overrides/Turret Manual", manualOverride());
     SmartDashboard.putData("Turret/Fudge Up", increaseFudgeFactor());
     SmartDashboard.putData("Turret/Fudge Down", decreaseFudgeFactor());
   }
 
-  public Command setGoal(TurretGoal goal) {
-    return this.runOnce(
-            () -> {
-              if (this.goal == TurretGoal.DISABLED || this.goal == TurretGoal.MANUAL_OVERRIDE) {
-                return;
-              }
-              this.goal = goal;
-              switch (goal) {
-                case SCORING:
-                  setTarget(FieldConstants.HUB_BLUE);
-                  break;
-                case PASSING:
-                  setTarget(getPassingTarget(poseSupplier.get()));
-                  break;
-                case IDLE:
-                  io.stopFlywheel();
-                  io.stopHood();
-                  io.stopTurn();
-                  break;
-                case TUNING:
-                  io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
-                  io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
-                  io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
-                  break;
-                case DUCKING:
-                  io.setHoodAngle(MIN_HOOD_ANGLE);
-                  Angle desired =
-                      fieldSpeedsSupplier.get().vxMetersPerSecond > 0
-                          ? Degrees.zero()
-                          : Degrees.of(180);
-                  io.setTurnSetpoint(
-                      TurretCalculator.calculateAzimuthAngle(
-                          poseSupplier.get(), desired, inputs.turnPosition),
-                      RadiansPerSecond.of(0));
-                  break;
-                case OFF:
-                  io.stopFlywheel();
-                  io.stopHood();
-                  io.stopTurn();
-                  break;
-                case DISABLED:
-                  io.stopFlywheel();
-                  io.stopHood();
-                  io.stopTurn();
-                  break;
-                case MANUAL_OVERRIDE:
-                  io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
-                  io.setHoodAngle(MIN_HOOD_ANGLE);
-                  io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
-                  break;
-              }
-            })
-        .withName("Set Turret Goal");
+  public void setGoal(TurretGoal goal) {
+    if (this.goal == TurretGoal.DISABLED || this.goal == TurretGoal.MANUAL_OVERRIDE) {
+      return;
+    }
+    this.goal = goal;
+    switch (goal) {
+      case SCORING:
+        setTarget(FieldConstants.HUB_BLUE);
+        break;
+      case PASSING:
+        setTarget(getPassingTarget(poseSupplier.get()));
+        break;
+      case IDLE:
+        io.stopFlywheel();
+        io.stopHood();
+        io.stopTurn();
+        break;
+      case TUNING:
+        io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
+        io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
+        io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
+        break;
+      case DUCKING:
+        io.setHoodAngle(MIN_HOOD_ANGLE);
+        Angle desired =
+            fieldSpeedsSupplier.get().vxMetersPerSecond > 0 ? Degrees.zero() : Degrees.of(180);
+        io.setTurnSetpoint(
+            TurretCalculator.calculateAzimuthAngle(
+                poseSupplier.get(), desired, inputs.turnPosition),
+            RadiansPerSecond.of(0));
+        break;
+      case OFF:
+        io.stopFlywheel();
+        io.stopHood();
+        io.stopTurn();
+        break;
+      case DISABLED:
+        io.stopFlywheel();
+        io.stopHood();
+        io.stopTurn();
+        break;
+      case MANUAL_OVERRIDE:
+        io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
+        io.setHoodAngle(MIN_HOOD_ANGLE);
+        io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
+        break;
+    }
   }
 
   private Command increaseFudgeFactor() {
@@ -237,14 +228,6 @@ public class Turret extends SubsystemBase {
     return inputs.turnPosition.isNear(MIN_TURN_ANGLE, TURNAROUND_ZONE);
   }
 
-  public Command disable() {
-    return setGoal(TurretGoal.DISABLED)
-        .andThen(Commands.idle())
-        .finallyDo(() -> goal = TurretGoal.OFF)
-        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
-        .withName("Disable Turret");
-  }
-
   public Command duck() {
     return this.startEnd(
             () -> {
@@ -270,51 +253,6 @@ public class Turret extends SubsystemBase {
               }
             })
         .withName("Turret Duck");
-  }
-
-  public Command manualOverride() {
-    return setGoal(TurretGoal.MANUAL_OVERRIDE)
-        .andThen(Commands.idle())
-        .finallyDo(
-            () -> {
-              if (goal != TurretGoal.DISABLED) {
-                goal = TurretGoal.OFF;
-              }
-            })
-        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
-        .withName("Turret Manual Override");
-  }
-
-  public Command manualScore() {
-    return Commands.startEnd(
-            () -> {
-              io.setFlywheelSpeed(FLYWHEEL_SCORING_OVERRIDE.plus(flywheelFudgeFactor));
-              io.setHoodAngle(HOOD_SCORING_OVERRIDE);
-              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
-            },
-            () -> {
-              io.stopFlywheel();
-              io.setHoodAngle(Radians.zero());
-              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
-            })
-        .onlyIf(() -> goal == TurretGoal.MANUAL_OVERRIDE)
-        .withName("Turret Manual Score");
-  }
-
-  public Command manualPass() {
-    return Commands.startEnd(
-            () -> {
-              io.setFlywheelSpeed(FLYWHEEL_PASSING_OVERRIDE.plus(flywheelFudgeFactor));
-              io.setHoodAngle(HOOD_PASSING_OVERRIDE);
-              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
-            },
-            () -> {
-              io.stopFlywheel();
-              io.setHoodAngle(Radians.zero());
-              io.setTurnSetpoint(Radians.zero(), RadiansPerSecond.zero());
-            })
-        .onlyIf(() -> goal == TurretGoal.MANUAL_OVERRIDE)
-        .withName("Turret Manual Pass");
   }
 
   @Override

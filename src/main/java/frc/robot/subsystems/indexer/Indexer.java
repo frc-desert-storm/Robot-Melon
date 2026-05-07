@@ -2,7 +2,6 @@ package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -14,30 +13,27 @@ public class Indexer extends SubsystemBase {
     this.io = io;
   }
 
-  public Command setState(State state) {
-    return runOnce(
-        () -> {
-          this.state = state;
-          switch (state) {
-            case SCORING -> {
-              io.setConveyorSpeed(RotationsPerSecond.of(4000.0 / 60));
-              io.setIndexerSpeed(RotationsPerSecond.of(6000.0 / 60));
-              io.setSideRollersSpeed(RotationsPerSecond.of(4000.0 / 60));
-            }
-            case FEEDING -> {
-              io.setConveyorSpeed(RotationsPerSecond.of(2000.0 / 60));
-            }
-            case REVERSE -> {
-              io.setIndexerSpeed(RotationsPerSecond.of(-2000.0 / 60));
-              io.setConveyorSpeed(RotationsPerSecond.of(-2000.0 / 60));
-            }
-            case IDLE -> {
-              io.stopIndexer();
-              io.stopConveyor();
-              io.stopSideRollers();
-            }
-          }
-        });
+  public void setState(State state) {
+    this.state = state;
+    switch (state) {
+      case SCORING -> {
+        io.setConveyorSpeed(RotationsPerSecond.of(4000.0 / 60));
+        io.setIndexerSpeed(RotationsPerSecond.of(6000.0 / 60));
+        io.setSideRollersSpeed(RotationsPerSecond.of(4000.0 / 60));
+      }
+      case FEEDING -> {
+        io.setConveyorSpeed(RotationsPerSecond.of(2000.0 / 60));
+      }
+      case REVERSE -> {
+        io.setIndexerSpeed(RotationsPerSecond.of(-2000.0 / 60));
+        io.setConveyorSpeed(RotationsPerSecond.of(-2000.0 / 60));
+      }
+      case IDLE -> {
+        io.stopIndexer();
+        io.stopConveyor();
+        io.stopSideRollers();
+      }
+    }
   }
 
   @Override

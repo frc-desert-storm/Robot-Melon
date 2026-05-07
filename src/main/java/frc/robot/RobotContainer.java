@@ -7,24 +7,21 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.TurretConstants.DUCK_TIME;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -42,7 +39,6 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
-import frc.robot.util.Zones;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -56,6 +52,12 @@ public class RobotContainer {
   private final Drive drive;
   private final Turret turret;
   private final Vision vision;
+  private final Intake intake =
+      new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
+  private final Indexer indexer =
+      new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
+
+  private final Superstructure superstructure;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -63,11 +65,6 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-
-  private final Intake intake =
-      new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
-  private final Indexer indexer =
-      new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -91,6 +88,8 @@ public class RobotContainer {
                     VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
                 new VisionIOPhotonVision(
                     VisionConstants.rightCameraName, VisionConstants.robotToRightCamera));
+        superstructure =
+            new Superstructure(turret, indexer, intake, drive::getPose, drive::getChassisSpeeds);
         break;
 
       case SIM:
@@ -114,6 +113,8 @@ public class RobotContainer {
                     VisionConstants.rightCameraName,
                     VisionConstants.robotToRightCamera,
                     drive::getPose));
+        superstructure =
+            new Superstructure(turret, indexer, intake, drive::getPose, drive::getChassisSpeeds);
         break;
 
       default:
@@ -127,21 +128,15 @@ public class RobotContainer {
                 new ModuleIO() {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        superstructure =
+            new Superstructure(turret, indexer, intake, drive::getPose, drive::getChassisSpeeds);
         break;
     }
 
-    NamedCommands.registerCommand(
-        "Shoot",
-        new ParallelCommandGroup(
-            turret.setGoal(Turret.TurretGoal.SCORING), indexer.setState(Indexer.State.SCORING)));
-    NamedCommands.registerCommand(
-        "Stop Shooting",
-        new ParallelCommandGroup(
-            turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
-    NamedCommands.registerCommand(
-        "Intake down", intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
-    NamedCommands.registerCommand(
-        "Intake Up", intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE));
+    NamedCommands.registerCommand("Shoot", superstructure.score());
+    NamedCommands.registerCommand("Stop Shooting", superstructure.idle());
+    NamedCommands.registerCommand("Intake down", superstructure.intake());
+    NamedCommands.registerCommand("Intake Up", superstructure.idle());
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -161,9 +156,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-    this.underTrenchTrigger =
-        Zones.TRENCH_DUCK_ZONES.willContain(drive::getPose, drive::getChassisSpeeds, DUCK_TIME);
 
     // Configure the button bindings
     driveBindings();
@@ -200,70 +192,14 @@ public class RobotContainer {
                 .ignoringDisable(true));
   }
 
-  public final Trigger underTrenchTrigger;
-
   private void configureBindings() {
-    controller
-        .rightTrigger()
-        .onTrue(
-            new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.SCORING),
-                indexer.setState(Indexer.State.SCORING)));
-    controller
-        .rightTrigger()
-        .onFalse(
-            new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
+    controller.rightTrigger().whileTrue(superstructure.score());
 
-    controller
-        .leftBumper()
-        .onTrue(
-            new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.PASSING),
-                indexer.setState(Indexer.State.SCORING)));
-    controller
-        .leftBumper()
-        .onFalse(
-            new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
+    controller.rightBumper().whileTrue(superstructure.pass());
 
-    controller
-        .leftTrigger()
-        .onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING));
-    controller
-        .leftTrigger()
-        .onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
+    controller.leftTrigger().whileTrue(superstructure.intake());
 
-    controller.povDown().onTrue(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
-
-    controller.povUp().onTrue(intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING));
-    controller.povUp().onFalse(intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE));
-
-    controller
-        .povRight()
-        .onTrue(
-            new ParallelCommandGroup(
-                intake.setState(Intake.PivotState.DOWN, Intake.RollerState.REVERSE),
-                indexer.setState(Indexer.State.REVERSE)));
-    controller
-        .povRight()
-        .onFalse(
-            new ParallelCommandGroup(
-                intake.setState(Intake.PivotState.IDLE, Intake.RollerState.IDLE),
-                indexer.setState(Indexer.State.IDLE)));
-
-    controller
-        .rightBumper()
-        .onTrue(
-            new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.TUNING), indexer.setState(Indexer.State.SCORING)));
-    controller
-        .rightBumper()
-        .onFalse(
-            new ParallelCommandGroup(
-                turret.setGoal(Turret.TurretGoal.IDLE), indexer.setState(Indexer.State.IDLE)));
-
-    underTrenchTrigger.and(DriverStation::isTeleop).whileTrue(turret.duck());
+    controller.povRight().whileTrue(superstructure.reverse());
   }
 
   /**
@@ -276,9 +212,7 @@ public class RobotContainer {
   }
 
   public void stopMechanisms() {
-    turret.setGoal(Turret.TurretGoal.OFF);
-    intake.stop();
-    indexer.stop();
+    CommandScheduler.getInstance().schedule(superstructure.idle());
     drive.stop();
   }
 }
