@@ -190,6 +190,9 @@ public final class Constants {
 
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);
     public static final Time ACTIVE_POSTSHOOT_TIME = Seconds.of(1);
+
+    public static final double SCORE_WINDUP_SECONDS = 0.25;
+    public static final double PASS_WINDUP_SECONDS = 0.5;
   }
 
   public static final int OPERATOR_KEYBOARD_PORT = 2;

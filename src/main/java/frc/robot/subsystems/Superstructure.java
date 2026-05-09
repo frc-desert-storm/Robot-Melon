@@ -1,6 +1,6 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.TurretConstants.DUCK_TIME;
+import static frc.robot.Constants.TurretConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -19,10 +19,6 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Superstructure extends SubsystemBase {
-
-  private static final double SCORE_WINDUP_SECONDS = 0.25;
-  private static final double PASS_WINDUP_SECONDS = 0.5;
-
   private final Turret turret;
   private final Indexer indexer;
   private final Intake intake;
@@ -161,10 +157,10 @@ public class Superstructure extends SubsystemBase {
 
   @Override
   public void periodic() {
-    Logger.recordOutput("Superstructure/State", state.toString());
-    Logger.recordOutput("Superstructure/TurretGoal", turret.getGoal().toString());
-    Logger.recordOutput("Superstructure/IndexerState", indexer.state.toString());
-    Logger.recordOutput("Superstructure/IntakePivot", intake.pivotState.toString());
-    Logger.recordOutput("Superstructure/IntakeRoller", intake.rollerState.toString());
+    Logger.recordOutput("Superstructure/State", state);
+    Logger.recordOutput("Superstructure/TurretGoal", turret.getGoal());
+    Logger.recordOutput("Superstructure/IndexerState", indexer.state);
+    Logger.recordOutput("Superstructure/IntakePivot", intake.pivotState);
+    Logger.recordOutput("Superstructure/IntakeRoller", intake.rollerState);
   }
 }
