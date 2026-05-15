@@ -109,7 +109,7 @@ public class IntakeIOKraken implements IntakeIO {
     pivotLeftCfg.MotionMagic.MotionMagicCruiseVelocity = PIVOT_CRUISE_RPS;
     pivotLeftCfg.MotionMagic.MotionMagicAcceleration = PIVOT_ACCEL_RPS2;
     pivotLeftCfg.MotionMagic.MotionMagicJerk = PIVOT_JERK_RPS3;
-    pivotLeftCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
+    pivotLeftCfg.CurrentLimits.SupplyCurrentLimit = 15.0;
     pivotLeftCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     pivotLeftCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     pivotLeftCfg.CurrentLimits.StatorCurrentLimitEnable = true;

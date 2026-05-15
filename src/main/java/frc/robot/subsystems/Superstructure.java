@@ -64,7 +64,7 @@ public class Superstructure extends SubsystemBase {
       case IDLE -> {
         turret.setGoal(Turret.TurretGoal.IDLE);
         indexer.setState(Indexer.State.IDLE);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE);
+        intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE);
       }
       case INTAKING -> {
         turret.setGoal(Turret.TurretGoal.IDLE);
@@ -79,7 +79,7 @@ public class Superstructure extends SubsystemBase {
       case SCORING -> {
         turret.setGoal(Turret.TurretGoal.SCORING);
         indexer.setState(Indexer.State.SCORING);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE);
+        intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING);
       }
       case PASSING_WINDUP -> {
         turret.setGoal(Turret.TurretGoal.PASSING);
@@ -89,7 +89,7 @@ public class Superstructure extends SubsystemBase {
       case PASSING -> {
         turret.setGoal(Turret.TurretGoal.PASSING);
         indexer.setState(Indexer.State.SCORING);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE);
+        intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING);
       }
       case REVERSING -> {
         turret.setGoal(Turret.TurretGoal.IDLE);

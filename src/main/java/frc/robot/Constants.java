@@ -91,13 +91,13 @@ public final class Constants {
         new Slot0Configs().withKP(10).withKD(1.0).withKS(10).withKV(0.3);
 
     public static final CurrentLimitsConfigs TURN_CURRENT_LIMITS =
-        new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(30);
+        new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(20);
 
     public static final CurrentLimitsConfigs HOOD_CURRENT_LIMITS =
-        new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(30);
+        new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(20);
 
     public static final CurrentLimitsConfigs FLYWHEEL_CURRENT_LIMITS =
-        new CurrentLimitsConfigs().withStatorCurrentLimit(80);
+        new CurrentLimitsConfigs().withSupplyCurrentLimit(60);
 
     public static final MotorOutputConfigs TURN_OUTPUT_CONFIGS =
         new MotorOutputConfigs()

@@ -22,7 +22,7 @@ public class Indexer extends SubsystemBase {
         io.setSideRollersSpeed(RotationsPerSecond.of(4000.0 / 60));
       }
       case FEEDING -> {
-        io.setConveyorSpeed(RotationsPerSecond.of(2000.0 / 60));
+        io.setConveyorSpeed(RotationsPerSecond.of(1000.0 / 60));
       }
       case REVERSE -> {
         io.setIndexerSpeed(RotationsPerSecond.of(-2000.0 / 60));
