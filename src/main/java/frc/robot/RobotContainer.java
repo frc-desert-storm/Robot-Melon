@@ -8,7 +8,6 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -89,7 +88,7 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     VisionConstants.rightCameraName, VisionConstants.robotToRightCamera));
         superstructure =
-            new Superstructure(turret, indexer, intake, drive::getPose, drive::getChassisSpeeds);
+            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
 
       case SIM:
@@ -114,7 +113,7 @@ public class RobotContainer {
                     VisionConstants.robotToRightCamera,
                     drive::getPose));
         superstructure =
-            new Superstructure(turret, indexer, intake, drive::getPose, drive::getChassisSpeeds);
+            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
 
       default:
@@ -129,14 +128,14 @@ public class RobotContainer {
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         superstructure =
-            new Superstructure(turret, indexer, intake, drive::getPose, drive::getChassisSpeeds);
+            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
     }
 
-    NamedCommands.registerCommand("Shoot", superstructure.score());
-    NamedCommands.registerCommand("Stop Shooting", superstructure.idle());
-    NamedCommands.registerCommand("Intake down", superstructure.intake());
-    NamedCommands.registerCommand("Intake Up", superstructure.idle());
+    //    NamedCommands.registerCommand("Shoot", superstructure.score());
+    //    NamedCommands.registerCommand("Stop Shooting", superstructure.idle());
+    //    NamedCommands.registerCommand("Intake down", superstructure.intake());
+    //    NamedCommands.registerCommand("Intake Up", superstructure.idle());
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -197,7 +196,7 @@ public class RobotContainer {
 
     controller.rightBumper().whileTrue(superstructure.pass());
 
-    controller.leftTrigger().whileTrue(superstructure.intake());
+    controller.leftTrigger().whileTrue(intake.intake());
 
     controller.povRight().whileTrue(superstructure.reverse());
   }

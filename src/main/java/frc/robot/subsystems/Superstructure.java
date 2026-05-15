@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.indexer.Indexer;
-import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.util.HubShiftUtil;
 import frc.robot.util.Zones;
@@ -21,7 +20,6 @@ import org.littletonrobotics.junction.Logger;
 public class Superstructure extends SubsystemBase {
   private final Turret turret;
   private final Indexer indexer;
-  private final Intake intake;
 
   @AutoLogOutput private SuperstructureState state = SuperstructureState.IDLE;
 
@@ -34,12 +32,10 @@ public class Superstructure extends SubsystemBase {
   public Superstructure(
       Turret turret,
       Indexer indexer,
-      Intake intake,
       Supplier<Pose2d> poseSupplier,
       Supplier<ChassisSpeeds> chassisSpeedsSupplier) {
     this.turret = turret;
     this.indexer = indexer;
-    this.intake = intake;
 
     underTrenchTrigger =
         Zones.TRENCH_DUCK_ZONES.willContain(poseSupplier, chassisSpeedsSupplier, DUCK_TIME);
@@ -49,7 +45,6 @@ public class Superstructure extends SubsystemBase {
 
   public enum SuperstructureState {
     IDLE,
-    INTAKING,
     SCORING_WINDUP,
     SCORING,
     PASSING_WINDUP,
@@ -64,37 +59,26 @@ public class Superstructure extends SubsystemBase {
       case IDLE -> {
         turret.setGoal(Turret.TurretGoal.IDLE);
         indexer.setState(Indexer.State.IDLE);
-        intake.setState(Intake.PivotState.DOWN, Intake.RollerState.IDLE);
-      }
-      case INTAKING -> {
-        turret.setGoal(Turret.TurretGoal.IDLE);
-        indexer.setState(Indexer.State.FEEDING);
-        intake.setState(Intake.PivotState.DOWN, Intake.RollerState.INTAKING);
       }
       case SCORING_WINDUP -> {
         turret.setGoal(Turret.TurretGoal.SCORING);
         indexer.setState(Indexer.State.IDLE);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE);
       }
       case SCORING -> {
         turret.setGoal(Turret.TurretGoal.SCORING);
         indexer.setState(Indexer.State.SCORING);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING);
       }
       case PASSING_WINDUP -> {
         turret.setGoal(Turret.TurretGoal.PASSING);
         indexer.setState(Indexer.State.IDLE);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.IDLE);
       }
       case PASSING -> {
         turret.setGoal(Turret.TurretGoal.PASSING);
         indexer.setState(Indexer.State.SCORING);
-        intake.setState(Intake.PivotState.UP, Intake.RollerState.INTAKING);
       }
       case REVERSING -> {
         turret.setGoal(Turret.TurretGoal.IDLE);
         indexer.setState(Indexer.State.REVERSE);
-        intake.setState(Intake.PivotState.DOWN, Intake.RollerState.REVERSE);
       }
       case DUCKING -> {
         turret.setGoal(Turret.TurretGoal.DUCKING);
@@ -106,13 +90,6 @@ public class Superstructure extends SubsystemBase {
     return Commands.startEnd(
             () -> applyState(SuperstructureState.IDLE), () -> applyState(SuperstructureState.IDLE))
         .withName("Superstructure Idle");
-  }
-
-  public Command intake() {
-    return Commands.startEnd(
-            () -> applyState(SuperstructureState.INTAKING),
-            () -> applyState(SuperstructureState.IDLE))
-        .withName("Superstructure Intake");
   }
 
   public Command score() {
@@ -160,7 +137,5 @@ public class Superstructure extends SubsystemBase {
     Logger.recordOutput("Superstructure/State", state);
     Logger.recordOutput("Superstructure/TurretGoal", turret.getGoal());
     Logger.recordOutput("Superstructure/IndexerState", indexer.state);
-    Logger.recordOutput("Superstructure/IntakePivot", intake.pivotState);
-    Logger.recordOutput("Superstructure/IntakeRoller", intake.rollerState);
   }
 }
