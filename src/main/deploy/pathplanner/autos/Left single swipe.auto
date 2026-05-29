@@ -7,37 +7,49 @@
         {
           "type": "named",
           "data": {
-            "name": "Intake Up"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.0
+            "name": "Intake down"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Start intaking"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 14.0
+            "waitTime": 0.2
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New Path"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Stop Shooting"
+            "name": "Stop intaking"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New New Path"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start shooting"
           }
         }
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": null,
   "choreoAuto": false
 }
