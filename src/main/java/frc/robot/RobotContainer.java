@@ -7,7 +7,10 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.TurretConstants.SCORE_WINDUP_SECONDS;
+
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -31,6 +34,8 @@ import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOKraken;
 import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.Intake.PivotState;
+import frc.robot.subsystems.intake.Intake.RollerState;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.turret.Turret;
@@ -132,10 +137,7 @@ public class RobotContainer {
         break;
     }
 
-    //    NamedCommands.registerCommand("Shoot", superstructure.score());
-    //    NamedCommands.registerCommand("Stop Shooting", superstructure.idle());
-    //    NamedCommands.registerCommand("Intake down", superstructure.intake());
-    //    NamedCommands.registerCommand("Intake Up", superstructure.idle());
+    registerNamedCommands();
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -199,6 +201,32 @@ public class RobotContainer {
     controller.leftTrigger().whileTrue(intake.intake());
 
     controller.povRight().whileTrue(superstructure.reverse());
+  }
+
+  private void registerNamedCommands() {
+    NamedCommands.registerCommand(
+        "Intake down",
+        Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.IDLE), intake));
+    NamedCommands.registerCommand(
+        "Start intaking",
+        Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.INTAKING), intake));
+    NamedCommands.registerCommand(
+        "Stop intaking",
+        Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.IDLE), intake));
+    NamedCommands.registerCommand(
+        "Start shooting",
+        Commands.sequence(
+            Commands.runOnce(
+                () -> superstructure.applyState(Superstructure.SuperstructureState.SCORING_WINDUP)),
+            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
+            Commands.runOnce(
+                () -> superstructure.applyState(Superstructure.SuperstructureState.SCORING)),
+            Commands.idle()));
+    NamedCommands.registerCommand(
+        "Stop shooting",
+        Commands.runOnce(
+            () -> superstructure.applyState(Superstructure.SuperstructureState.IDLE),
+            superstructure));
   }
 
   /**

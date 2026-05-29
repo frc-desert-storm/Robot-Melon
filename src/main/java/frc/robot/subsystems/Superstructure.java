@@ -53,7 +53,7 @@ public class Superstructure extends SubsystemBase {
     DUCKING,
   }
 
-  private void applyState(SuperstructureState newState) {
+  public void applyState(SuperstructureState newState) {
     state = newState;
     switch (newState) {
       case IDLE -> {
