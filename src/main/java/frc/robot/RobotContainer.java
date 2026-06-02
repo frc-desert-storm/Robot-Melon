@@ -200,6 +200,14 @@ public class RobotContainer {
 
     controller.leftTrigger().whileTrue(intake.intake());
 
+    controller
+        .leftBumper()
+        .whileTrue(
+            Commands.runOnce(
+                () -> {
+                  intake.setState(PivotState.UP, RollerState.INTAKING);
+                }));
+
     controller.povRight().whileTrue(superstructure.reverse());
   }
 
@@ -207,6 +215,9 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "Intake down",
         Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.IDLE), intake));
+    NamedCommands.registerCommand(
+        "Intake up",
+        Commands.runOnce(() -> intake.setState(PivotState.UP, RollerState.INTAKING), intake));
     NamedCommands.registerCommand(
         "Start intaking",
         Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.INTAKING), intake));

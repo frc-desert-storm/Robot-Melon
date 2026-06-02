@@ -45,11 +45,17 @@
           "data": {
             "name": "Start shooting"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake up"
+          }
         }
       ]
     }
   },
-  "resetOdom": false,
+  "resetOdom": true,
   "folder": null,
   "choreoAuto": false
 }
