@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -23,22 +24,19 @@ public class Intake extends SubsystemBase {
     Logger.processInputs("Intake", inputs);
   }
 
-  public Command setState(PivotState pivotState, RollerState rollerState) {
-    return runOnce(
-        () -> {
-          this.pivotState = pivotState;
-          this.rollerState = rollerState;
-          switch (pivotState) {
-            case UP -> io.setPivotAngle(Degrees.of(-50));
-            case DOWN -> io.setPivotAngle(Degrees.of(-2).minus(pivotOffset));
-            case IDLE -> io.stopPivot();
-          }
-          switch (rollerState) {
-            case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
-            case REVERSE -> io.setRollerSpeed(RotationsPerSecond.of(-1000.0 / 60));
-            case IDLE -> io.stopRoller();
-          }
-        });
+  public void setState(PivotState pivotState, RollerState rollerState) {
+    this.pivotState = pivotState;
+    this.rollerState = rollerState;
+    switch (pivotState) {
+      case UP -> io.setPivotAngle(Degrees.of(-50));
+      case DOWN -> io.setPivotAngle(Degrees.of(-2).minus(pivotOffset));
+      case IDLE -> io.stopPivot();
+    }
+    switch (rollerState) {
+      case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+      case REVERSE -> io.setRollerSpeed(RotationsPerSecond.of(-1000.0 / 60));
+      case IDLE -> io.stopRoller();
+    }
   }
 
   public void stop() {
@@ -46,6 +44,13 @@ public class Intake extends SubsystemBase {
     this.pivotState = PivotState.IDLE;
     io.stopRoller();
     io.stopPivot();
+  }
+
+  public Command intake() {
+    return Commands.startEnd(
+        () -> setState(PivotState.DOWN, RollerState.INTAKING),
+        () -> setState(PivotState.DOWN, RollerState.IDLE),
+        this);
   }
 
   public PivotState pivotState = PivotState.IDLE;

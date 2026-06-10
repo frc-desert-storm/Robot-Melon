@@ -5,39 +5,51 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Intake down"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intaking"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.2
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Lef"
+            "pathName": "Right swipe"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Intake Up"
+            "name": "Stop intaking"
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 1.0
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 14.0
+            "pathName": "Right return"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Stop Shooting"
+            "name": "Start shooting"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake up"
           }
         }
       ]

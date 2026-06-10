@@ -62,7 +62,7 @@ public class IndexerIOKraken implements IndexerIO {
     var leftRollerCfg = new TalonFXConfiguration();
     leftRollerCfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     leftRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    leftRollerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
+    leftRollerCfg.CurrentLimits.SupplyCurrentLimit = 10.0;
     leftRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     leftRollerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     leftRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -74,7 +74,7 @@ public class IndexerIOKraken implements IndexerIO {
     var rightRollerCfg = new TalonFXConfiguration();
     rightRollerCfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     rightRollerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
+    rightRollerCfg.CurrentLimits.SupplyCurrentLimit = 10.0;
     rightRollerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     rightRollerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     rightRollerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -85,7 +85,7 @@ public class IndexerIOKraken implements IndexerIO {
 
     var indexerCfg = new TalonFXConfiguration();
     indexerCfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    indexerCfg.CurrentLimits.SupplyCurrentLimit = 30.0;
+    indexerCfg.CurrentLimits.SupplyCurrentLimit = 15.0;
     indexerCfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     indexerCfg.CurrentLimits.StatorCurrentLimit = 40.0;
     indexerCfg.CurrentLimits.StatorCurrentLimitEnable = true;
