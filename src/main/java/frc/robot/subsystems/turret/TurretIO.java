@@ -40,6 +40,13 @@ public interface TurretIO {
     public AngularAcceleration flywheelAccel = RotationsPerSecondPerSecond.of(0.0);
     public AngularVelocity flywheelSetpointSpeed = RPM.of(0.0);
     public AngularAcceleration flywheelSetpointAccel = RotationsPerSecondPerSecond.of(0.0);
+
+    public boolean flywheelFollowerMotorConnected = false;
+    public Voltage flywheelFollowerAppliedVolts = Volts.of(0.0);
+    public Current flywheelFollowerCurrent = Amps.of(0.0);
+    public Current flywheelFollowerSupplyCurrent = Amps.of(0.0);
+    public AngularVelocity flywheelFollowerSpeed = RPM.of(0.0);
+    public AngularAcceleration flywheelFollowerAccel = RotationsPerSecondPerSecond.of(0.0);
   }
 
   public default void updateInputs(TurretIOInputs inputs) {}

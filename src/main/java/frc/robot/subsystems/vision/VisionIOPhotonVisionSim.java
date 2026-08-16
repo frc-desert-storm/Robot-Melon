@@ -7,7 +7,7 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.Constants.VisionConstants.aprilTagLayout;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -21,6 +21,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
   private static VisionSystemSim visionSim;
 
   private final Supplier<Pose2d> poseSupplier;
+  private final Supplier<Transform3d> robotToCameraSupplier;
   private final PhotonCameraSim cameraSim;
 
   /**
@@ -31,8 +32,14 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
    */
   public VisionIOPhotonVisionSim(
       String name, Transform3d robotToCamera, Supplier<Pose2d> poseSupplier) {
-    super(name, robotToCamera);
+    this(name, () -> robotToCamera, poseSupplier);
+  }
+
+  public VisionIOPhotonVisionSim(
+      String name, Supplier<Transform3d> robotToCameraSupplier, Supplier<Pose2d> poseSupplier) {
+    super(name, timestamp -> robotToCameraSupplier.get());
     this.poseSupplier = poseSupplier;
+    this.robotToCameraSupplier = robotToCameraSupplier;
 
     // Initialize vision sim
     if (visionSim == null) {
@@ -43,11 +50,12 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
     // Add sim camera
     var cameraProperties = new SimCameraProperties();
     cameraSim = new PhotonCameraSim(camera, cameraProperties, aprilTagLayout);
-    visionSim.addCamera(cameraSim, robotToCamera);
+    visionSim.addCamera(cameraSim, robotToCameraSupplier.get());
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
+    visionSim.adjustCamera(cameraSim, robotToCameraSupplier.get());
     visionSim.update(poseSupplier.get());
     super.updateInputs(inputs);
   }

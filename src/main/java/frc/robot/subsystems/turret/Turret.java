@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -42,6 +44,9 @@ public class Turret extends SubsystemBase {
   private final TurretIOInputsAutoLogged inputs;
   private final Supplier<Pose2d> poseSupplier;
   private final Supplier<ChassisSpeeds> fieldSpeedsSupplier;
+
+  private final TimeInterpolatableBuffer<Rotation2d> turnPositionBuffer =
+      TimeInterpolatableBuffer.createBuffer(1.0);
 
   @AutoLogOutput
   Translation3d currentTarget =
@@ -92,6 +97,8 @@ public class Turret extends SubsystemBase {
 
   private final Alert flywheelDisconnectedAlert =
       new Alert("Turret Flywheel Motor Disconnected!", AlertType.kError);
+  private final Alert flywheelFollowerDisconnectedAlert =
+      new Alert("Turret Flywheel Follower Motor Disconnected!", AlertType.kError);
   private final Alert hoodDisconnectedAlert =
       new Alert("Turret Hood Motor Disconnected!", AlertType.kError);
   private final Alert turnDisconnectedAlert =
@@ -193,6 +200,16 @@ public class Turret extends SubsystemBase {
     return goal;
   }
 
+  public Rotation2d getTurnPosition() {
+    return new Rotation2d(inputs.turnPosition.in(Radians));
+  }
+
+  public Rotation2d getTurnPositionAt(double timestampSeconds) {
+    return turnPositionBuffer
+        .getSample(timestampSeconds)
+        .orElse(new Rotation2d(inputs.turnPosition.in(Radians)));
+  }
+
   public Command setTurnPosition(Angle position) {
     return this.runOnce(() -> io.setTurnSetpoint(position, RadiansPerSecond.zero()));
   }
@@ -262,6 +279,9 @@ public class Turret extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Turret", inputs);
 
+    turnPositionBuffer.addSample(
+        Timer.getFPGATimestamp(), new Rotation2d(inputs.turnPosition.in(Radians)));
+
     Pose2d pose = poseSupplier.get();
 
     switch (goal) {
@@ -289,6 +309,8 @@ public class Turret extends SubsystemBase {
 
     flywheelDisconnectedAlert.set(
         !inputs.flywheelMotorConnected && Constants.currentMode != Mode.SIM);
+    flywheelFollowerDisconnectedAlert.set(
+        !inputs.flywheelFollowerMotorConnected && Constants.currentMode != Mode.SIM);
     hoodDisconnectedAlert.set(!inputs.hoodMotorConnected && Constants.currentMode != Mode.SIM);
     turnDisconnectedAlert.set(!inputs.turnMotorConnected && Constants.currentMode != Mode.SIM);
   }

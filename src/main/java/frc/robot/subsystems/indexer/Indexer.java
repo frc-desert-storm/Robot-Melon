@@ -1,6 +1,6 @@
 package frc.robot.subsystems.indexer;
 
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
@@ -17,21 +17,13 @@ public class Indexer extends SubsystemBase {
     this.state = state;
     switch (state) {
       case SCORING -> {
-        io.setConveyorSpeed(RotationsPerSecond.of(4000.0 / 60));
-        io.setIndexerSpeed(RotationsPerSecond.of(6000.0 / 60));
-        io.setSideRollersSpeed(RotationsPerSecond.of(4000.0 / 60));
-      }
-      case FEEDING -> {
-        io.setConveyorSpeed(RotationsPerSecond.of(1000.0 / 60));
+        io.setIndexerSpeed(RPM.of(120));
       }
       case REVERSE -> {
-        io.setIndexerSpeed(RotationsPerSecond.of(-2000.0 / 60));
-        io.setConveyorSpeed(RotationsPerSecond.of(-2000.0 / 60));
+        io.setIndexerSpeed(RPM.of(-40));
       }
       case IDLE -> {
         io.stopIndexer();
-        io.stopConveyor();
-        io.stopSideRollers();
       }
     }
   }
@@ -45,15 +37,12 @@ public class Indexer extends SubsystemBase {
   public void stop() {
     state = State.IDLE;
     io.stopIndexer();
-    io.stopConveyor();
-    io.stopSideRollers();
   }
 
   public State state = State.IDLE;
 
   public enum State {
     SCORING,
-    FEEDING,
     REVERSE,
     IDLE
   }

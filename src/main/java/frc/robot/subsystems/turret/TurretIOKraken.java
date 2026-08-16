@@ -15,12 +15,14 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -33,6 +35,7 @@ public class TurretIOKraken implements TurretIO {
   private final TalonFX turnMotor;
   private final TalonFX hoodMotor;
   private final TalonFX flywheelMotor;
+  private final TalonFX flywheelFollowerMotor;
 
   private final TalonFXConfiguration turnConfig;
   private final TalonFXConfiguration hoodConfig;
@@ -59,6 +62,12 @@ public class TurretIOKraken implements TurretIO {
   private final StatusSignal<Voltage> flywheelAppliedVolts;
   private final StatusSignal<Current> flywheelCurrent;
   private final StatusSignal<Current> flywheelSupplyCurrent;
+
+  private final StatusSignal<AngularVelocity> flywheelFollowerSpeed;
+  private final StatusSignal<AngularAcceleration> flywheelFollowerAccel;
+  private final StatusSignal<Voltage> flywheelFollowerAppliedVolts;
+  private final StatusSignal<Current> flywheelFollowerCurrent;
+  private final StatusSignal<Current> flywheelFollowerSupplyCurrent;
 
   private final PositionVoltage turnPositionRequest = new PositionVoltage(0);
   private final PositionVoltage hoodPositionRequest = new PositionVoltage(0);
@@ -109,6 +118,11 @@ public class TurretIOKraken implements TurretIO {
     PhoenixUtil.tryUntilOk(5, () -> hoodMotor.getConfigurator().apply(hoodConfig, 0.25));
     PhoenixUtil.tryUntilOk(5, () -> flywheelMotor.getConfigurator().apply(flywheelConfig, 0.25));
 
+    flywheelFollowerMotor = new TalonFX(FLYWHEEL_FOLLOWER_ID, TunerConstants.kCANBus);
+    PhoenixUtil.tryUntilOk(
+        5, () -> flywheelFollowerMotor.getConfigurator().apply(flywheelConfig, 0.25));
+    flywheelFollowerMotor.setControl(new Follower(FLYWHEEL_ID, MotorAlignmentValue.Opposed));
+
     turnPosition = turnMotor.getPosition();
     turnSetpoint = turnMotor.getClosedLoopReference();
     turnVelocity = turnMotor.getVelocity();
@@ -131,6 +145,12 @@ public class TurretIOKraken implements TurretIO {
     flywheelCurrent = flywheelMotor.getTorqueCurrent();
     flywheelSupplyCurrent = flywheelMotor.getSupplyCurrent();
 
+    flywheelFollowerSpeed = flywheelFollowerMotor.getVelocity();
+    flywheelFollowerAccel = flywheelFollowerMotor.getAcceleration();
+    flywheelFollowerAppliedVolts = flywheelFollowerMotor.getMotorVoltage();
+    flywheelFollowerCurrent = flywheelFollowerMotor.getTorqueCurrent();
+    flywheelFollowerSupplyCurrent = flywheelFollowerMotor.getSupplyCurrent();
+
     PhoenixUtil.registerStatusSignals(
         Hertz.of(50),
         turnPosition,
@@ -151,10 +171,16 @@ public class TurretIOKraken implements TurretIO {
         flywheelSetpointAccel,
         flywheelAppliedVolts,
         flywheelCurrent,
-        flywheelSupplyCurrent);
+        flywheelSupplyCurrent,
+        flywheelFollowerSpeed,
+        flywheelFollowerAccel,
+        flywheelFollowerAppliedVolts,
+        flywheelFollowerCurrent,
+        flywheelFollowerSupplyCurrent);
     turnMotor.optimizeBusUtilization();
     hoodMotor.optimizeBusUtilization();
     flywheelMotor.optimizeBusUtilization();
+    flywheelFollowerMotor.optimizeBusUtilization();
   }
 
   @Override
@@ -209,6 +235,20 @@ public class TurretIOKraken implements TurretIO {
     inputs.flywheelAppliedVolts = flywheelAppliedVolts.getValue();
     inputs.flywheelCurrent = flywheelCurrent.getValue();
     inputs.flywheelSupplyCurrent = flywheelCurrent.getValue();
+
+    inputs.flywheelFollowerMotorConnected =
+        BaseStatusSignal.refreshAll(
+                flywheelFollowerSpeed,
+                flywheelFollowerAccel,
+                flywheelFollowerAppliedVolts,
+                flywheelFollowerCurrent,
+                flywheelFollowerSupplyCurrent)
+            .isOK();
+    inputs.flywheelFollowerSpeed = flywheelFollowerSpeed.getValue();
+    inputs.flywheelFollowerAccel = flywheelFollowerAccel.getValue();
+    inputs.flywheelFollowerAppliedVolts = flywheelFollowerAppliedVolts.getValue();
+    inputs.flywheelFollowerCurrent = flywheelFollowerCurrent.getValue();
+    inputs.flywheelFollowerSupplyCurrent = flywheelFollowerCurrent.getValue();
   }
 
   @Override
