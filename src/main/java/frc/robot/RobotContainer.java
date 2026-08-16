@@ -7,41 +7,27 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.TurretConstants.SCORE_WINDUP_SECONDS;
-
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.indexer.Indexer;
-import frc.robot.subsystems.indexer.IndexerIOKraken;
-import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.Intake.PivotState;
-import frc.robot.subsystems.intake.Intake.RollerState;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
-import frc.robot.subsystems.turret.Turret;
-import frc.robot.subsystems.turret.TurretIO;
-import frc.robot.subsystems.turret.TurretIOKraken;
-import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -54,14 +40,14 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Turret turret;
-  private final Vision vision;
+  //  private final Turret turret;
+  //  private final Vision vision;
   private final Intake intake =
       new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
-  private final Indexer indexer =
-      new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
+  //  private final Indexer indexer =
+  //      new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
 
-  private final Superstructure superstructure;
+  //  private final Superstructure superstructure;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -84,16 +70,17 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
-                new VisionIOPhotonVision(
-                    VisionConstants.rightCameraName, VisionConstants.robotToRightCamera));
-        superstructure =
-            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
+        //        turret = new Turret(new TurretIOKraken(), drive::getPose,
+        // drive::getChassisSpeeds);
+        //        vision =
+        //            new Vision(
+        //                drive::addVisionMeasurement,
+        //                new VisionIOPhotonVision(
+        //                    VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
+        //                new VisionIOPhotonVision(
+        //                    VisionConstants.rightCameraName, VisionConstants.robotToRightCamera));
+        //        superstructure =
+        //            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
 
       case SIM:
@@ -105,20 +92,20 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.leftCameraName,
-                    VisionConstants.robotToLeftCamera,
-                    drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.rightCameraName,
-                    VisionConstants.robotToRightCamera,
-                    drive::getPose));
-        superstructure =
-            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
+        //        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
+        //        vision =
+        //            new Vision(
+        //                drive::addVisionMeasurement,
+        //                new VisionIOPhotonVisionSim(
+        //                    VisionConstants.leftCameraName,
+        //                    VisionConstants.robotToLeftCamera,
+        //                    drive::getPose),
+        //                new VisionIOPhotonVisionSim(
+        //                    VisionConstants.rightCameraName,
+        //                    VisionConstants.robotToRightCamera,
+        //                    drive::getPose));
+        //        superstructure =
+        //            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
 
       default:
@@ -130,10 +117,11 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
-        superstructure =
-            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
+        //        turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
+        //        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO()
+        // {});
+        //        superstructure =
+        //            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
     }
 
@@ -194,50 +182,55 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    controller.rightTrigger().whileTrue(superstructure.score());
-
-    controller.rightBumper().whileTrue(superstructure.pass());
+    //    controller.rightTrigger().whileTrue(superstructure.score());
+    //
+    //    controller.rightBumper().whileTrue(superstructure.pass());
 
     controller.leftTrigger().whileTrue(intake.intake());
 
-    controller
-        .leftBumper()
-        .whileTrue(
-            Commands.runOnce(
-                () -> {
-                  intake.setState(PivotState.UP, RollerState.INTAKING);
-                }));
+    //    controller
+    //        .leftBumper()
+    //        .whileTrue(
+    //            Commands.runOnce(
+    //                () -> {
+    //                  intake.setState(ExtensionState.UP, RollerState.INTAKING);
+    //                }));
 
-    controller.povRight().whileTrue(superstructure.reverse());
+    //    controller.povRight().whileTrue(superstructure.reverse());
   }
 
   private void registerNamedCommands() {
-    NamedCommands.registerCommand(
-        "Intake down",
-        Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.IDLE), intake));
-    NamedCommands.registerCommand(
-        "Intake up",
-        Commands.runOnce(() -> intake.setState(PivotState.UP, RollerState.INTAKING), intake));
-    NamedCommands.registerCommand(
-        "Start intaking",
-        Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.INTAKING), intake));
-    NamedCommands.registerCommand(
-        "Stop intaking",
-        Commands.runOnce(() -> intake.setState(PivotState.DOWN, RollerState.IDLE), intake));
-    NamedCommands.registerCommand(
-        "Start shooting",
-        Commands.sequence(
-            Commands.runOnce(
-                () -> superstructure.applyState(Superstructure.SuperstructureState.SCORING_WINDUP)),
-            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
-            Commands.runOnce(
-                () -> superstructure.applyState(Superstructure.SuperstructureState.SCORING)),
-            Commands.idle()));
-    NamedCommands.registerCommand(
-        "Stop shooting",
-        Commands.runOnce(
-            () -> superstructure.applyState(Superstructure.SuperstructureState.IDLE),
-            superstructure));
+    //    NamedCommands.registerCommand(
+    //        "Intake down",
+    //        Commands.runOnce(() -> intake.setState(ExtensionState.DOWN, RollerState.IDLE),
+    // intake));
+    //    NamedCommands.registerCommand(
+    //        "Intake up",
+    //        Commands.runOnce(() -> intake.setState(ExtensionState.UP, RollerState.INTAKING),
+    // intake));
+    //    NamedCommands.registerCommand(
+    //        "Start intaking",
+    //        Commands.runOnce(() -> intake.setState(ExtensionState.DOWN, RollerState.INTAKING),
+    // intake));
+    //    NamedCommands.registerCommand(
+    //        "Stop intaking",
+    //        Commands.runOnce(() -> intake.setState(ExtensionState.DOWN, RollerState.IDLE),
+    // intake));
+    //    NamedCommands.registerCommand(
+    //        "Start shooting",
+    //        Commands.sequence(
+    //            Commands.runOnce(
+    //                () ->
+    // superstructure.applyState(Superstructure.SuperstructureState.SCORING_WINDUP)),
+    //            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
+    //            Commands.runOnce(
+    //                () -> superstructure.applyState(Superstructure.SuperstructureState.SCORING)),
+    //            Commands.idle()));
+    //    NamedCommands.registerCommand(
+    //        "Stop shooting",
+    //        Commands.runOnce(
+    //            () -> superstructure.applyState(Superstructure.SuperstructureState.IDLE),
+    //            superstructure));
   }
 
   /**
@@ -250,7 +243,7 @@ public class RobotContainer {
   }
 
   public void stopMechanisms() {
-    CommandScheduler.getInstance().schedule(superstructure.idle());
+    //    CommandScheduler.getInstance().schedule(superstructure.idle());
     drive.stop();
   }
 }

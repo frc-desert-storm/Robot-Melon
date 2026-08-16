@@ -9,21 +9,21 @@ public interface IntakeIO {
 
   @AutoLog
   class IntakeIOInputs {
-    public boolean pivotMotorConnected = false;
-    public Angle pivotPosition = Degrees.of(0.0);
-    public AngularVelocity pivotVelocity = RPM.of(0.0);
-    public Voltage pivotAppliedVolts = Volts.of(0.0);
-    public Current pivotCurrentAmps = Amps.of(0.0);
-    public Temperature pivotTemp = Celsius.of(0.0);
-    public boolean pivotAtGoal = false;
+    public boolean extensionMotorConnected = false;
+    public Distance extensionPosition = Inches.of(0.0);
+    public LinearVelocity extensionVelocity = InchesPerSecond.of(0.0);
+    public Voltage extensionAppliedVolts = Volts.of(0.0);
+    public Current extensionCurrentAmps = Amps.of(0.0);
+    public Temperature extensionTemp = Celsius.of(0.0);
+    public boolean extensionAtGoal = false;
 
-    public boolean pivotLeftMotorConnected = false;
-    public Angle pivotLeftPosition = Degrees.of(0.0);
-    public AngularVelocity pivotLeftVelocity = RPM.of(0.0);
-    public Voltage pivotLeftAppliedVolts = Volts.of(0.0);
-    public Current pivotLeftCurrentAmps = Amps.of(0.0);
-    public Temperature pivotLeftTemp = Celsius.of(0.0);
-    public boolean pivotLeftAtGoal;
+    public boolean extensionLeftMotorConnected = false;
+    public Distance extensionLeftPosition = Inches.of(0.0);
+    public LinearVelocity extensionLeftVelocity = InchesPerSecond.of(0.0);
+    public Voltage extensionLeftAppliedVolts = Volts.of(0.0);
+    public Current extensionLeftCurrentAmps = Amps.of(0.0);
+    public Temperature extensionLeftTemp = Celsius.of(0.0);
+    public boolean extensionLeftAtGoal;
 
     public boolean rollerMotorConnected = false;
     public AngularVelocity rollerVelocity = RPM.of(0.0);
@@ -36,11 +36,11 @@ public interface IntakeIO {
   /** Update logged inputs. Called every robot loop. */
   default void updateInputs(IntakeIOInputs inputs) {}
 
-  default void setPivotAngle(Angle angle) {}
+  default void setExtensionDistance(Distance distance) {}
 
   default void setRollerSpeed(AngularVelocity speed) {}
 
-  default void stopPivot() {}
+  default void stopExtension() {}
 
   default void stopRoller() {}
 }

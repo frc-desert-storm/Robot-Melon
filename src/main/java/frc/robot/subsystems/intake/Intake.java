@@ -1,8 +1,9 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.Constants.IntakeConstants.INTAKING_POSE;
+import static frc.robot.Constants.IntakeConstants.STOW_POSE;
 
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,28 +13,49 @@ public class Intake extends SubsystemBase {
   private final IntakeIO io;
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
-  public Angle pivotOffset = Degrees.of(0.0);
-
   public Intake(IntakeIO io) {
     this.io = io;
+    Logger.recordOutput("Intake/extensionState", extensionState);
+    Logger.recordOutput("Intake/rollerState", rollerState);
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
+    Logger.recordOutput("Intake/extensionState", extensionState);
+    Logger.recordOutput("Intake/rollerState", rollerState);
+    switch (extensionState) {
+      case EXTENDED -> {
+        if (rollerState == RollerState.INTAKING) {
+          io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+        }
+        if (INTAKING_POSE.in(Inch) - inputs.extensionLeftPosition.in(Inch) > 1.5
+            | INTAKING_POSE.in(Inch) - inputs.extensionPosition.in(Inch) > 1.5) {
+          setState(ExtensionState.RETRACTING, rollerState);
+        }
+      }
+      case EXTENDING -> {
+        if (Math.abs(inputs.extensionLeftPosition.in(Inch) - INTAKING_POSE.in(Inch)) < 0.25
+            && Math.abs(inputs.extensionPosition.in(Inch) - INTAKING_POSE.in(Inch)) < 0.25) {
+          io.stopExtension();
+          extensionState = ExtensionState.EXTENDED;
+        }
+      }
+      case RETRACTING -> {}
+    }
   }
 
-  public void setState(PivotState pivotState, RollerState rollerState) {
-    this.pivotState = pivotState;
+  public void setState(ExtensionState extensionState, RollerState rollerState) {
+    this.extensionState = extensionState;
     this.rollerState = rollerState;
-    switch (pivotState) {
-      case UP -> io.setPivotAngle(Degrees.of(-50));
-      case DOWN -> io.setPivotAngle(Degrees.of(-2).minus(pivotOffset));
-      case IDLE -> io.stopPivot();
+    switch (extensionState) {
+      case IDLE -> io.stopExtension();
+      case RETRACTING -> io.setExtensionDistance(STOW_POSE);
+      case EXTENDING -> io.setExtensionDistance(INTAKING_POSE);
     }
     switch (rollerState) {
-      case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+        // case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
       case REVERSE -> io.setRollerSpeed(RotationsPerSecond.of(-1000.0 / 60));
       case IDLE -> io.stopRoller();
     }
@@ -41,23 +63,25 @@ public class Intake extends SubsystemBase {
 
   public void stop() {
     this.rollerState = RollerState.IDLE;
-    this.pivotState = PivotState.IDLE;
+    this.extensionState = ExtensionState.IDLE;
     io.stopRoller();
-    io.stopPivot();
+    io.stopExtension();
   }
 
   public Command intake() {
     return Commands.startEnd(
-        () -> setState(PivotState.DOWN, RollerState.INTAKING),
-        () -> setState(PivotState.DOWN, RollerState.IDLE),
+        () -> setState(ExtensionState.EXTENDING, RollerState.INTAKING),
+        () -> setState(ExtensionState.RETRACTING, RollerState.IDLE),
         this);
   }
 
-  public PivotState pivotState = PivotState.IDLE;
+  public ExtensionState extensionState = ExtensionState.IDLE;
 
-  public enum PivotState {
-    UP,
-    DOWN,
+  public enum ExtensionState {
+    EXTENDED,
+    EXTENDING,
+    RETRACTED,
+    RETRACTING,
     IDLE
   }
 

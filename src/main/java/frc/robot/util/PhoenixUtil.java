@@ -7,10 +7,13 @@
 
 package frc.robot.util;
 
+import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignalCollection;
-import edu.wpi.first.units.measure.Frequency;
+import edu.wpi.first.units.measure.*;
 import java.util.function.Supplier;
 
 public class PhoenixUtil {
@@ -35,5 +38,17 @@ public class PhoenixUtil {
 
   public static StatusCode refreshAll() {
     return PhoenixUtil.signals.refreshAll();
+  }
+
+  public static Angle DistanceToAngle(Distance distance) {
+    return Rotations.of(distance.in(Inch) / Math.PI);
+  }
+
+  public static Distance AngleToDistance(Angle angle) {
+    return Inch.of(angle.in(Rotations) * Math.PI);
+  }
+
+  public static LinearVelocity AngularVelocityToLinearVelocity(AngularVelocity angularVelocity) {
+    return InchesPerSecond.of(angularVelocity.in(RotationsPerSecond) * Math.PI);
   }
 }

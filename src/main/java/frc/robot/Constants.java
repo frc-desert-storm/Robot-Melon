@@ -49,31 +49,35 @@ public final class Constants {
 
   public static final class IntakeConstants {
     private IntakeConstants() {}
-    /** Gear ratio between pivot motor output shaft and the mechanism. */
-    public static final double PIVOT_GEAR_RATIO =
-        (64.0 / 14) * (64.0 / 16) * (36.0 / 14); // 14:64 gear, 16:64 gear, 14:36 chain;
+    /** Gear ratio between extension motor output shaft and the mechanism. */
+    public static final double EXTENSION_GEAR_RATIO =
+        (64.0 / 14) * (26.0 / 15); // 14:64 gear, 15:26 belt;
 
     /** Gear ratio between roller motor output shaft and the roller mechanism. */
     public static final double ROLLER_GEAR_RATIO = 1.0;
 
-    public static final int PIVOT_FOLLOWER_CAN_ID = 41;
-    public static final int PIVOT_CAN_ID = 49;
-    public static final int ROLLER_CAN_ID = 48;
+    public static final int EXTENSION_FOLLOWER_CAN_ID = 44;
+    public static final int EXTENSION_CAN_ID = 43;
+    public static final int ROLLER_CAN_ID = 50;
+
+    public static final Distance START_POSE = Inch.of(0.0);
+    public static final Distance STOW_POSE = Inch.of(3.5);
+    public static final Distance INTAKING_POSE = Inch.of(11.52);
   }
 
   public static final class IndexerConstants {
     private IndexerConstants() {}
 
-    public static final int INDEXER_ID = 42;
-    public static final int CONVEYOR_CAN_ID = 50;
-    public static final int LEFT_SIDE_ROLLER_CAD_ID = 45;
-    public static final int RIGHT_SIDE_ROLLER_CAD_ID = 44;
+    public static final int INDEXER_ID = 63;
+    public static final int CONVEYOR_CAN_ID = 63;
+    public static final int LEFT_SIDE_ROLLER_CAD_ID = 63;
+    public static final int RIGHT_SIDE_ROLLER_CAD_ID = 63;
   }
 
   public static class TurretConstants {
-    public static final int TURN_ID = 43;
-    public static final int HOOD_ID = 47;
-    public static final int FLYWHEEL_ID = 46;
+    public static final int TURN_ID = 63;
+    public static final int HOOD_ID = 63;
+    public static final int FLYWHEEL_ID = 63;
 
     public static final double TURN_TO_TURRET_RATIO =
         (50.0 / 16) * (90.0 / 10); // 16:50 gear, 10:90 gear
