@@ -133,21 +133,21 @@ public final class Constants {
   public static final class IndexerConstants {
     private IndexerConstants() {}
 
-    public static final int INDEXER_ID = 63;
+    public static final int INDEXER_ID = 40;
 
     public static final double INDEXER_GEAR_RATIO = (56.0 / 12) * 9; // 12:56 chain, max planetary
 
-    public static final Slot0Configs INDEXER_GAINS = new Slot0Configs().withKP(8);
+    public static final Slot0Configs INDEXER_GAINS = new Slot0Configs().withKP(5).withKV(5);
 
     public static final CurrentLimitsConfigs INDEXER_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLimit(15).withStatorCurrentLimit(40);
   }
 
   public static class TurretConstants {
-    public static final int TURN_ID = 63;
-    public static final int HOOD_ID = 63;
-    public static final int FLYWHEEL_ID = 63;
-    public static final int FLYWHEEL_FOLLOWER_ID = 63;
+    public static final int TURN_ID = 45;
+    public static final int HOOD_ID = 48;
+    public static final int FLYWHEEL_ID = 46;
+    public static final int FLYWHEEL_FOLLOWER_ID = 47;
 
     public static final double TURN_TO_TURRET_RATIO =
         (50.0 / 16) * (20.0 / 16) * (160.0 / 10); // 16:50 gear, 16:20 belt, 10:160 gear
@@ -162,7 +162,7 @@ public final class Constants {
         new Slot0Configs().withKP(256).withKD(5).withKS(0.28);
 
     public static final Slot0Configs FLYWHEEL_GAINS =
-        new Slot0Configs().withKP(10).withKD(1.0).withKS(10).withKV(0.3);
+        new Slot0Configs().withKP(14).withKD(0.0).withKS(0).withKV(0.12).withKA(.1);
 
     public static final CurrentLimitsConfigs TURN_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(20);
@@ -171,7 +171,7 @@ public final class Constants {
         new CurrentLimitsConfigs().withSupplyCurrentLowerLimit(20);
 
     public static final CurrentLimitsConfigs FLYWHEEL_CURRENT_LIMITS =
-        new CurrentLimitsConfigs().withSupplyCurrentLimit(60);
+        new CurrentLimitsConfigs().withSupplyCurrentLimit(80);
 
     public static final MotorOutputConfigs TURN_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
@@ -185,7 +185,7 @@ public final class Constants {
 
     public static final MotorOutputConfigs FLYWHEEL_OUTPUT_CONFIGS =
         new MotorOutputConfigs()
-            .withInverted(InvertedValue.CounterClockwise_Positive)
+            .withInverted(InvertedValue.Clockwise_Positive)
             .withNeutralMode(NeutralModeValue.Coast);
 
     public static final FeedbackConfigs FLYWHEEL_FEEDBACK_CONFIGS =
@@ -242,24 +242,28 @@ public final class Constants {
     public static final InterpolatingDoubleTreeMap TOF_MAP = new InterpolatingDoubleTreeMap();
 
     static {
-      SHOT_MAP.put(1.75, new TurretCalculator.ShotData(RPM.of(2600), Degrees.of(22)));
-      TOF_MAP.put(1.75, 1.02);
-      SHOT_MAP.put(2.0, new TurretCalculator.ShotData(RPM.of(2750), Degrees.of(22)));
-      TOF_MAP.put(2.0, 1.05);
-      SHOT_MAP.put(3.2, new TurretCalculator.ShotData(RPM.of(3100), Degrees.of(22)));
-      TOF_MAP.put(3.2, 1.16);
-      SHOT_MAP.put(4.0, new TurretCalculator.ShotData(RPM.of(3250), Degrees.of(24)));
-      TOF_MAP.put(4.0, 1.25);
-      SHOT_MAP.put(5.0, new TurretCalculator.ShotData(RPM.of(3550), Degrees.of(28)));
-      TOF_MAP.put(5.0, 1.33);
-      SHOT_MAP.put(6.0, new TurretCalculator.ShotData(RPM.of(4200), Degrees.of(28)));
-      TOF_MAP.put(6.0, 1.40);
+      SHOT_MAP.put(
+          Units.inchesToMeters(213), new TurretCalculator.ShotData(RPM.of(1925), Degrees.of(32)));
+      TOF_MAP.put(Units.inchesToMeters(213), 1.54);
+      SHOT_MAP.put(
+          Units.inchesToMeters(39),
+          new TurretCalculator.ShotData(RPM.of(1300), Degrees.of(12))); // rotor speed 30
+      TOF_MAP.put(Units.inchesToMeters(39), 1.06);
+      SHOT_MAP.put(
+          Units.inchesToMeters(78), new TurretCalculator.ShotData(RPM.of(1400), Degrees.of(26)));
+      TOF_MAP.put(Units.inchesToMeters(78), 1.15);
+      SHOT_MAP.put(
+          Units.inchesToMeters(135), new TurretCalculator.ShotData(RPM.of(1600), Degrees.of(30)));
+      TOF_MAP.put(Units.inchesToMeters(135), 1.30);
+      SHOT_MAP.put(
+          Units.inchesToMeters(192), new TurretCalculator.ShotData(RPM.of(1900), Degrees.of(30)));
+      TOF_MAP.put(Units.inchesToMeters(192), 1.53);
     }
 
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);
     public static final Time ACTIVE_POSTSHOOT_TIME = Seconds.of(1);
 
-    public static final double SCORE_WINDUP_SECONDS = 0.25;
+    public static final double SCORE_WINDUP_SECONDS = 0.8;
     public static final double PASS_WINDUP_SECONDS = 0.5;
   }
 
@@ -329,21 +333,21 @@ public final class Constants {
     // (Not used by Limelight, configure in web UI instead)
     public static final Transform3d robotToLeftCamera =
         new Transform3d(
-            Units.inchesToMeters(9.839),
-            Units.inchesToMeters(10.574),
-            Units.inchesToMeters(5.952),
-            new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(20)));
+            Units.inchesToMeters(8.881248),
+            Units.inchesToMeters(14.75),
+            Units.inchesToMeters(17.475),
+            new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(90)));
     public static final Transform3d robotToRightCamera =
         new Transform3d(
-            Units.inchesToMeters(9.839),
-            Units.inchesToMeters(-10.574),
-            Units.inchesToMeters(5.952),
-            new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(-20)));
+            Units.inchesToMeters(8.881248),
+            Units.inchesToMeters(-14.75),
+            Units.inchesToMeters(17.475),
+            new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(-90)));
 
     public static final Transform3d turretToCamera =
         new Transform3d(
-            new Translation3d(Units.inchesToMeters(5.6875), 0.0, Units.inchesToMeters(.375)),
-            new Rotation3d(0.0, Units.degreesToRadians(-30), 0.0));
+            new Translation3d(Units.inchesToMeters(5.6875), 0.0, Units.inchesToMeters(.5)),
+            new Rotation3d(0.0, Units.degreesToRadians(-37), 0.0));
 
     public static Transform3d getRobotToTurretCamera(Rotation2d turretYaw) {
       Pose3d turretCenter = Pose3d.kZero.transformBy(TurretConstants.ROBOT_TO_TURRET_TRANSFORM);

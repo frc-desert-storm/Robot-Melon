@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.Indexer.State;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.util.HubShiftUtil;
 import frc.robot.util.Zones;
@@ -51,6 +52,8 @@ public class Superstructure extends SubsystemBase {
     PASSING,
     REVERSING,
     DUCKING,
+    TESTING,
+    TESTING_WINDUP
   }
 
   public void applyState(SuperstructureState newState) {
@@ -67,6 +70,13 @@ public class Superstructure extends SubsystemBase {
       case SCORING -> {
         turret.setGoal(Turret.TurretGoal.SCORING);
         indexer.setState(Indexer.State.SCORING);
+      }
+      case TESTING -> {
+        turret.setGoal(Turret.TurretGoal.TUNING);
+        indexer.setState(State.SCORING);
+      }
+      case TESTING_WINDUP -> {
+        turret.setGoal(Turret.TurretGoal.TUNING);
       }
       case PASSING_WINDUP -> {
         turret.setGoal(Turret.TurretGoal.PASSING);
@@ -98,6 +108,17 @@ public class Superstructure extends SubsystemBase {
             Commands.waitSeconds(SCORE_WINDUP_SECONDS),
             Commands.waitUntil(activeHubTrigger),
             Commands.runOnce(() -> applyState(SuperstructureState.SCORING)),
+            Commands.idle())
+        .finallyDo(() -> applyState(SuperstructureState.IDLE))
+        .withName("Superstructure Score");
+  }
+
+  public Command test() {
+    return Commands.sequence(
+            Commands.runOnce(() -> applyState(SuperstructureState.TESTING_WINDUP)),
+            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
+            Commands.waitUntil(activeHubTrigger),
+            Commands.runOnce(() -> applyState(SuperstructureState.TESTING)),
             Commands.idle())
         .finallyDo(() -> applyState(SuperstructureState.IDLE))
         .withName("Superstructure Score");

@@ -82,6 +82,8 @@ public class Turret extends SubsystemBase {
       new LoggedTunableNumber("Turret/Flywheel/kV", FLYWHEEL_GAINS.kV);
   private final LoggedTunableNumber flywheelKS =
       new LoggedTunableNumber("Turret/Flywheel/kS", FLYWHEEL_GAINS.kS);
+  private final LoggedTunableNumber flywheelKA =
+      new LoggedTunableNumber("Turret/Flywheel/kA", FLYWHEEL_GAINS.kA);
 
   private final LoggedTunableNumber tuningFlywheelSpeed =
       new LoggedTunableNumber("Turret/Tuning/FlywheelRPM", 0);
@@ -370,8 +372,10 @@ public class Turret extends SubsystemBase {
     if (flywheelKP.hasChanged(hashCode())
         || flywheelKD.hasChanged(hashCode())
         || flywheelKV.hasChanged(hashCode())
-        || flywheelKS.hasChanged(hashCode())) {
-      io.setFlywheelPID(flywheelKP.get(), flywheelKD.get(), flywheelKV.get(), flywheelKS.get());
+        || flywheelKS.hasChanged(hashCode())
+        || flywheelKA.hasChanged(hashCode())) {
+      io.setFlywheelPID(
+          flywheelKP.get(), flywheelKD.get(), flywheelKV.get(), flywheelKS.get(), flywheelKA.get());
     }
   }
 

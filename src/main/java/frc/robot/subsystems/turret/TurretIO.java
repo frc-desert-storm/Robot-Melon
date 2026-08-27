@@ -73,5 +73,5 @@ public interface TurretIO {
 
   public default void setHoodPID(double kP, double kD, double kS) {}
 
-  public default void setFlywheelPID(double kP, double kD, double kV, double kS) {}
+  public default void setFlywheelPID(double kP, double kD, double kV, double kS, double kA) {}
 }

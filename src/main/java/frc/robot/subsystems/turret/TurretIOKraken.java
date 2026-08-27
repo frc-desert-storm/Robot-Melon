@@ -78,8 +78,8 @@ public class TurretIOKraken implements TurretIO {
 
   public TurretIOKraken() {
     turnMotor = new TalonFX(TURN_ID, TunerConstants.kCANBus);
-    hoodMotor = new TalonFX(HOOD_ID, TunerConstants.kCANBus);
-    flywheelMotor = new TalonFX(FLYWHEEL_ID, TunerConstants.kCANBus);
+    hoodMotor = new TalonFX(HOOD_ID);
+    flywheelMotor = new TalonFX(FLYWHEEL_ID);
 
     turnConfig =
         new TalonFXConfiguration()
@@ -118,7 +118,7 @@ public class TurretIOKraken implements TurretIO {
     PhoenixUtil.tryUntilOk(5, () -> hoodMotor.getConfigurator().apply(hoodConfig, 0.25));
     PhoenixUtil.tryUntilOk(5, () -> flywheelMotor.getConfigurator().apply(flywheelConfig, 0.25));
 
-    flywheelFollowerMotor = new TalonFX(FLYWHEEL_FOLLOWER_ID, TunerConstants.kCANBus);
+    flywheelFollowerMotor = new TalonFX(FLYWHEEL_FOLLOWER_ID);
     PhoenixUtil.tryUntilOk(
         5, () -> flywheelFollowerMotor.getConfigurator().apply(flywheelConfig, 0.25));
     flywheelFollowerMotor.setControl(new Follower(FLYWHEEL_ID, MotorAlignmentValue.Opposed));
@@ -316,11 +316,12 @@ public class TurretIOKraken implements TurretIO {
   }
 
   @Override
-  public void setFlywheelPID(double kP, double kD, double kV, double kS) {
+  public void setFlywheelPID(double kP, double kD, double kV, double kS, double kA) {
     flywheelConfig.Slot0.kP = kP;
     flywheelConfig.Slot0.kD = kD;
     flywheelConfig.Slot0.kV = kV;
     flywheelConfig.Slot0.kS = kS;
+    flywheelConfig.Slot0.kA = kA;
 
     PhoenixUtil.tryUntilOk(
         5, () -> flywheelMotor.getConfigurator().apply(flywheelConfig.Slot0, 0.25));

@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.VisionConstants.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -39,6 +41,7 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -84,15 +87,13 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
-                new VisionIOPhotonVision(
-                    VisionConstants.rightCameraName, VisionConstants.robotToRightCamera),
+                // new VisionIOPhotonVision(
+                //     VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
+                // new VisionIOPhotonVision(
+                //     VisionConstants.rightCameraName, VisionConstants.robotToRightCamera),
                 new VisionIOPhotonVision(
                     VisionConstants.turretCameraName,
-                    timestamp ->
-                        VisionConstants.getRobotToTurretCamera(
-                            turret.getTurnPositionAt(timestamp))));
+                    timestamp -> getRobotToTurretCamera(turret.getTurnPositionAt(timestamp))));
         superstructure =
             new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
         break;
@@ -111,16 +112,12 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.leftCameraName,
-                    VisionConstants.robotToLeftCamera,
-                    drive::getPose),
+                    VisionConstants.leftCameraName, robotToLeftCamera, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.rightCameraName,
-                    VisionConstants.robotToRightCamera,
-                    drive::getPose),
+                    VisionConstants.rightCameraName, robotToRightCamera, drive::getPose),
                 new VisionIOPhotonVisionSim(
                     VisionConstants.turretCameraName,
-                    () -> VisionConstants.getRobotToTurretCamera(turret.getTurnPosition()),
+                    () -> getRobotToTurretCamera(turret.getTurnPosition()),
                     drive::getPose));
         superstructure =
             new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
@@ -168,6 +165,9 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    Logger.recordOutput("left", robotToLeftCamera);
+    Logger.recordOutput("right", robotToRightCamera);
+    Logger.recordOutput("turret", getRobotToTurretCamera(Rotation2d.kZero));
     // Configure the button bindings
     driveBindings();
     configureBindings();
@@ -206,7 +206,7 @@ public class RobotContainer {
   private void configureBindings() {
     controller.rightTrigger().whileTrue(superstructure.score());
 
-    controller.rightBumper().whileTrue(superstructure.pass());
+    controller.rightBumper().whileTrue(superstructure.test());
 
     controller.leftTrigger().whileTrue(intake.intake());
 
