@@ -299,6 +299,9 @@ public class Turret extends SubsystemBase {
         io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
         io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
         break;
+      case IDLE:
+        idleTracking(pose);
+        break;
       default:
         break;
     }
@@ -339,6 +342,19 @@ public class Turret extends SubsystemBase {
     io.setFlywheelSpeed(calculatedShot.getAngularExitVelocity().plus(flywheelFudgeFactor));
 
     Logger.recordOutput("Turret/Shot", calculatedShot);
+  }
+
+  public void idleTracking(Pose2d robotPose){
+    var calculatedShot =
+            TurretCalculator.iterativeMovingShotFromMap(
+                    robotPose, new ChassisSpeeds(), currentTarget, LOOKAHEAD_ITERATIONS);
+    Angle azimuthAngle =
+            TurretCalculator.calculateAzimuthAngle(
+                    robotPose, calculatedShot.target(), inputs.turnPosition);
+    ChassisSpeeds fieldSpeeds = fieldSpeedsSupplier.get();
+    AngularVelocity azimuthVelocity = RadiansPerSecond.of(-fieldSpeeds.omegaRadiansPerSecond);
+
+    io.setTurnSetpoint(azimuthAngle, azimuthVelocity);
   }
 
   public Command zeroHoodSequence() {
