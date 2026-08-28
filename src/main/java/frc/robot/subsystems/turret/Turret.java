@@ -148,7 +148,7 @@ public class Turret extends SubsystemBase {
     switch (goal) {
       case IDLE:
         io.stopFlywheel();
-        io.stopHood();
+        io.setHoodAngle(MIN_HOOD_ANGLE);
         io.stopTurn();
         break;
       case TUNING:
