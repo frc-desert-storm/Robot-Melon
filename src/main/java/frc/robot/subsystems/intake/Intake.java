@@ -1,22 +1,30 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.robot.Constants.IntakeConstants.INTAKING_POSE;
-import static frc.robot.Constants.IntakeConstants.STOW_POSE;
+import static frc.robot.Constants.IntakeConstants.*;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
   private final IntakeIO io;
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
+  private final Trigger extensionStalledTrigger;
+
   public Intake(IntakeIO io) {
     this.io = io;
     Logger.recordOutput("Intake/extensionState", extensionState);
     Logger.recordOutput("Intake/rollerState", rollerState);
+
+    extensionStalledTrigger =
+        new Trigger(
+            () ->
+                inputs.extensionVelocity.abs(MetersPerSecond) <= 0.2
+                    && inputs.extensionLeftVelocity.abs(MetersPerSecond) <= 0.2);
   }
 
   @Override
@@ -73,6 +81,16 @@ public class Intake extends SubsystemBase {
         () -> setState(ExtensionState.EXTENDING, RollerState.INTAKING),
         () -> setState(ExtensionState.RETRACTING, RollerState.IDLE),
         this);
+  }
+
+  public Command zeroExtension() {
+    return Commands.sequence(
+        this.runOnce(() -> io.setExtensionDistance(Meters.of(9))),
+        Commands.waitSeconds(0.1),
+        Commands.waitUntil(extensionStalledTrigger),
+        this.runOnce(io::stopExtension),
+        Commands.waitSeconds(0.2),
+        this.runOnce(io::zeroExtensionDistance));
   }
 
   public ExtensionState extensionState = ExtensionState.IDLE;

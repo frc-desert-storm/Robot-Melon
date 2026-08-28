@@ -159,6 +159,18 @@ public class IntakeIOKraken implements IntakeIO {
   }
 
   @Override
+  public void setExtensionVoltage(Voltage voltage) {
+    extensionMotor.setVoltage(voltage.in(Volts));
+    extensionLeftMotor.setVoltage(voltage.in(Volts));
+  }
+
+  @Override
+  public void zeroExtensionDistance() {
+    extensionLeftMotor.setPosition(DistanceToAngle(INTAKING_POSE));
+    extensionMotor.setPosition(DistanceToAngle(INTAKING_POSE));
+  }
+
+  @Override
   public void setRollerSpeed(AngularVelocity speed) {
     rollerMotor.setControl(rollerVelocityRequest.withVelocity((speed)));
   }

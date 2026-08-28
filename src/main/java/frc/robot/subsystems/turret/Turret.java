@@ -344,13 +344,13 @@ public class Turret extends SubsystemBase {
     Logger.recordOutput("Turret/Shot", calculatedShot);
   }
 
-  public void idleTracking(Pose2d robotPose){
+  public void idleTracking(Pose2d robotPose) {
     var calculatedShot =
-            TurretCalculator.iterativeMovingShotFromMap(
-                    robotPose, new ChassisSpeeds(), currentTarget, LOOKAHEAD_ITERATIONS);
+        TurretCalculator.iterativeMovingShotFromMap(
+            robotPose, new ChassisSpeeds(), currentTarget, LOOKAHEAD_ITERATIONS);
     Angle azimuthAngle =
-            TurretCalculator.calculateAzimuthAngle(
-                    robotPose, calculatedShot.target(), inputs.turnPosition);
+        TurretCalculator.calculateAzimuthAngle(
+            robotPose, calculatedShot.target(), inputs.turnPosition);
     ChassisSpeeds fieldSpeeds = fieldSpeedsSupplier.get();
     AngularVelocity azimuthVelocity = RadiansPerSecond.of(-fieldSpeeds.omegaRadiansPerSecond);
 

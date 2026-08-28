@@ -38,6 +38,10 @@ public interface IntakeIO {
 
   default void setExtensionDistance(Distance distance) {}
 
+  default void setExtensionVoltage(Voltage voltage) {}
+
+  default void zeroExtensionDistance() {}
+
   default void setRollerSpeed(AngularVelocity speed) {}
 
   default void stopExtension() {}

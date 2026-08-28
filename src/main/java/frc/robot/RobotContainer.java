@@ -210,6 +210,8 @@ public class RobotContainer {
 
     controller.leftTrigger().whileTrue(intake.intake());
 
+    controller.povUp().onTrue(intake.zeroExtension());
+
     //    controller
     //        .leftBumper()
     //        .whileTrue(
