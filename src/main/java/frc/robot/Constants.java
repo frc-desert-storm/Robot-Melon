@@ -263,8 +263,9 @@ public final class Constants {
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);
     public static final Time ACTIVE_POSTSHOOT_TIME = Seconds.of(1);
 
-    public static final double SCORE_WINDUP_SECONDS = 0.8;
-    public static final double PASS_WINDUP_SECONDS = 0.5;
+    public static final Angle TURN_TOLERANCE = Degrees.of(2.0);
+    public static final Angle HOOD_TOLERANCE = Degrees.of(1.0);
+    public static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(50.0);
   }
 
   public static enum Mode {

@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meter;
 import static frc.robot.Constants.TurretConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -9,9 +10,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.Indexer.State;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.HubShiftUtil;
 import frc.robot.util.Zones;
 import java.util.function.Supplier;
@@ -23,12 +26,9 @@ public class Superstructure extends SubsystemBase {
   private final Indexer indexer;
   private final Supplier<Pose2d> poseSupplier;
   private final Supplier<ChassisSpeeds> chassisSpeedsSupplier;
+  private boolean passing = false;
 
   @AutoLogOutput private SuperstructureState state = SuperstructureState.IDLE;
-
-  @AutoLogOutput
-  public final Trigger activeHubTrigger =
-      new Trigger(() -> HubShiftUtil.getShiftedShiftInfo().active());
 
   @AutoLogOutput public final Trigger underTrenchTrigger;
 
@@ -100,11 +100,7 @@ public class Superstructure extends SubsystemBase {
 
   public Command shoot() {
     return Commands.sequence(
-            Commands.runOnce(() -> applyState(SuperstructureState.WINDUP)),
-            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
-            Commands.waitUntil(activeHubTrigger),
-            Commands.runOnce(() -> applyState(SuperstructureState.SHOOTING)),
-            Commands.idle())
+            Commands.runOnce(() -> applyState(SuperstructureState.WINDUP)), Commands.idle())
         .finallyDo(() -> applyState(SuperstructureState.IDLE))
         .withName("Superstructure Score");
   }
@@ -112,8 +108,7 @@ public class Superstructure extends SubsystemBase {
   public Command test() {
     return Commands.sequence(
             Commands.runOnce(() -> applyState(SuperstructureState.TESTING_WINDUP)),
-            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
-            Commands.waitUntil(activeHubTrigger),
+            Commands.waitSeconds(1.8),
             Commands.runOnce(() -> applyState(SuperstructureState.TESTING)),
             Commands.idle())
         .finallyDo(() -> applyState(SuperstructureState.IDLE))
@@ -138,8 +133,35 @@ public class Superstructure extends SubsystemBase {
     return state;
   }
 
+  public boolean shouldShoot() {
+    if (!turret.ready()) return false;
+    if (passing) {
+      return true;
+    } else {
+      return HubShiftUtil.getShiftedShiftInfo().active();
+    }
+  }
+
   @Override
   public void periodic() {
+    passing =
+        AllianceFlipUtil.applyX(poseSupplier.get().getX())
+            > Constants.FieldConstants.HUB_CENTER.in(Meter);
+
+    switch (state) {
+      case SHOOTING -> {
+        if (!shouldShoot()) {
+          applyState(SuperstructureState.WINDUP);
+        }
+        break;
+      }
+      case WINDUP -> {
+        if (shouldShoot()) {
+          applyState(SuperstructureState.SHOOTING);
+        }
+      }
+    }
+
     Logger.recordOutput("Superstructure/State", state);
     Logger.recordOutput("Superstructure/TurretGoal", turret.getGoal());
     Logger.recordOutput("Superstructure/IndexerState", indexer.state);

@@ -269,6 +269,14 @@ public class Turret extends SubsystemBase {
         .withName("Turret Duck");
   }
 
+  public boolean ready() {
+    boolean turnReady = inputs.turnPosition.isNear(inputs.turnSetpoint, TURN_TOLERANCE);
+    boolean hoodReady = inputs.hoodPosition.isNear(inputs.hoodSetpoint, HOOD_TOLERANCE);
+    boolean flywheelReady =
+        inputs.flywheelSpeed.isNear(inputs.flywheelSetpointSpeed, FLYWHEEL_TOLERANCE);
+    return turnReady && hoodReady && flywheelReady;
+  }
+
   @Override
   public void periodic() {
     PhoenixUtil.refreshAll();
