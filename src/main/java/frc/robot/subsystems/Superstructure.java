@@ -21,6 +21,8 @@ import org.littletonrobotics.junction.Logger;
 public class Superstructure extends SubsystemBase {
   private final Turret turret;
   private final Indexer indexer;
+  private final Supplier<Pose2d> poseSupplier;
+  private final Supplier<ChassisSpeeds> chassisSpeedsSupplier;
 
   @AutoLogOutput private SuperstructureState state = SuperstructureState.IDLE;
 
@@ -37,6 +39,8 @@ public class Superstructure extends SubsystemBase {
       Supplier<ChassisSpeeds> chassisSpeedsSupplier) {
     this.turret = turret;
     this.indexer = indexer;
+    this.poseSupplier = poseSupplier;
+    this.chassisSpeedsSupplier = chassisSpeedsSupplier;
 
     underTrenchTrigger =
         Zones.TRENCH_DUCK_ZONES.willContain(poseSupplier, chassisSpeedsSupplier, DUCK_TIME);
@@ -46,8 +50,8 @@ public class Superstructure extends SubsystemBase {
 
   public enum SuperstructureState {
     IDLE,
-    SCORING_WINDUP,
-    SCORING,
+    WINDUP,
+    SHOOTING,
     PASSING_WINDUP,
     PASSING,
     REVERSING,
@@ -63,28 +67,20 @@ public class Superstructure extends SubsystemBase {
         turret.setGoal(Turret.TurretGoal.IDLE);
         indexer.setState(Indexer.State.IDLE);
       }
-      case SCORING_WINDUP -> {
-        turret.setGoal(Turret.TurretGoal.SCORING);
+      case WINDUP -> {
+        turret.setGoal(Turret.TurretGoal.SHOOTING);
         indexer.setState(Indexer.State.IDLE);
       }
-      case SCORING -> {
-        turret.setGoal(Turret.TurretGoal.SCORING);
-        indexer.setState(Indexer.State.SCORING);
+      case SHOOTING -> {
+        turret.setGoal(Turret.TurretGoal.SHOOTING);
+        indexer.setState(Indexer.State.SHOOTING);
       }
       case TESTING -> {
         turret.setGoal(Turret.TurretGoal.TUNING);
-        indexer.setState(State.SCORING);
+        indexer.setState(State.SHOOTING);
       }
       case TESTING_WINDUP -> {
         turret.setGoal(Turret.TurretGoal.TUNING);
-      }
-      case PASSING_WINDUP -> {
-        turret.setGoal(Turret.TurretGoal.PASSING);
-        indexer.setState(Indexer.State.IDLE);
-      }
-      case PASSING -> {
-        turret.setGoal(Turret.TurretGoal.PASSING);
-        indexer.setState(Indexer.State.SCORING);
       }
       case REVERSING -> {
         turret.setGoal(Turret.TurretGoal.IDLE);
@@ -102,12 +98,12 @@ public class Superstructure extends SubsystemBase {
         .withName("Superstructure Idle");
   }
 
-  public Command score() {
+  public Command shoot() {
     return Commands.sequence(
-            Commands.runOnce(() -> applyState(SuperstructureState.SCORING_WINDUP)),
+            Commands.runOnce(() -> applyState(SuperstructureState.WINDUP)),
             Commands.waitSeconds(SCORE_WINDUP_SECONDS),
             Commands.waitUntil(activeHubTrigger),
-            Commands.runOnce(() -> applyState(SuperstructureState.SCORING)),
+            Commands.runOnce(() -> applyState(SuperstructureState.SHOOTING)),
             Commands.idle())
         .finallyDo(() -> applyState(SuperstructureState.IDLE))
         .withName("Superstructure Score");
@@ -122,17 +118,6 @@ public class Superstructure extends SubsystemBase {
             Commands.idle())
         .finallyDo(() -> applyState(SuperstructureState.IDLE))
         .withName("Superstructure Score");
-  }
-
-  public Command pass() {
-    return Commands.sequence(
-            Commands.runOnce(() -> applyState(SuperstructureState.PASSING_WINDUP)),
-            Commands.waitSeconds(PASS_WINDUP_SECONDS),
-            Commands.waitUntil(activeHubTrigger),
-            Commands.runOnce(() -> applyState(SuperstructureState.PASSING)),
-            Commands.idle())
-        .finallyDo(() -> applyState(SuperstructureState.IDLE))
-        .withName("Superstructure Pass");
   }
 
   public Command reverse() {

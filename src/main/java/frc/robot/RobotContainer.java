@@ -204,7 +204,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    controller.rightTrigger().whileTrue(superstructure.score());
+    controller.rightTrigger().whileTrue(superstructure.shoot());
 
     controller.rightBumper().whileTrue(superstructure.test());
 

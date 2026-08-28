@@ -16,7 +16,7 @@ public class Indexer extends SubsystemBase {
   public void setState(State state) {
     this.state = state;
     switch (state) {
-      case SCORING -> {
+      case SHOOTING -> {
         io.setIndexerSpeed(RPM.of(120));
       }
       case REVERSE -> {
@@ -42,7 +42,7 @@ public class Indexer extends SubsystemBase {
   public State state = State.IDLE;
 
   public enum State {
-    SCORING,
+    SHOOTING,
     REVERSE,
     IDLE
   }

@@ -284,6 +284,8 @@ public final class Constants {
 
     public static final Distance ALLIANCE_ZONE = Inches.of(156.06);
 
+    public static final Distance HUB_CENTER = Meters.of(2.600833);
+
     public static final Translation3d HUB_BLUE =
         new Translation3d(Inches.of(181.56), FIELD_WIDTH.div(2), Inches.of(56.4));
     public static final Translation3d HUB_RED =

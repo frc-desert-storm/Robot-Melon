@@ -33,6 +33,7 @@ import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.Robot;
 import frc.robot.subsystems.turret.TurretCalculator.ShotData;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.PhoenixUtil;
 import java.util.function.Supplier;
@@ -145,12 +146,6 @@ public class Turret extends SubsystemBase {
     }
     this.goal = goal;
     switch (goal) {
-      case SCORING:
-        setTarget(FieldConstants.HUB_BLUE);
-        break;
-      case PASSING:
-        setTarget(getPassingTarget(poseSupplier.get()));
-        break;
       case IDLE:
         io.stopFlywheel();
         io.stopHood();
@@ -286,14 +281,17 @@ public class Turret extends SubsystemBase {
 
     Pose2d pose = poseSupplier.get();
 
+    boolean passing = AllianceFlipUtil.applyX(pose.getX()) > FieldConstants.HUB_CENTER.in(Meter);
+
     switch (goal) {
-      case SCORING:
+      case SHOOTING:
         calculateShot(pose);
+        setTarget(passing ? getPassingTarget(pose) : FieldConstants.HUB_BLUE);
         break;
-      case PASSING:
-        calculateShot(pose);
-        setTarget(getPassingTarget(pose));
-        break;
+        //      case PASSING:
+        //        calculateShot(pose);
+        //        setTarget(getPassingTarget(pose));
+        //        break;
       case TUNING:
         io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
         io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
@@ -403,8 +401,7 @@ public class Turret extends SubsystemBase {
   }
 
   public enum TurretGoal {
-    SCORING,
-    PASSING,
+    SHOOTING,
     IDLE,
     TUNING,
     DUCKING,
