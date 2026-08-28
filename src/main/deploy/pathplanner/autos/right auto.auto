@@ -7,7 +7,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Intake down"
+            "name": "Intake out"
           }
         },
         {
@@ -17,15 +17,9 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.2
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "Right swipe"
+            "pathName": "right swipe"
           }
         },
         {
@@ -37,19 +31,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right return"
+            "pathName": "right return"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Start shooting"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake up"
           }
         }
       ]

@@ -10,6 +10,7 @@ package frc.robot;
 import static frc.robot.Constants.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -224,37 +225,35 @@ public class RobotContainer {
   }
 
   private void registerNamedCommands() {
-    //    NamedCommands.registerCommand(
-    //        "Intake down",
-    //        Commands.runOnce(() -> intake.setState(ExtensionState.DOWN, RollerState.IDLE),
-    // intake));
-    //    NamedCommands.registerCommand(
-    //        "Intake up",
-    //        Commands.runOnce(() -> intake.setState(ExtensionState.UP, RollerState.INTAKING),
-    // intake));
-    //    NamedCommands.registerCommand(
-    //        "Start intaking",
-    //        Commands.runOnce(() -> intake.setState(ExtensionState.DOWN, RollerState.INTAKING),
-    // intake));
-    //    NamedCommands.registerCommand(
-    //        "Stop intaking",
-    //        Commands.runOnce(() -> intake.setState(ExtensionState.DOWN, RollerState.IDLE),
-    // intake));
-    //    NamedCommands.registerCommand(
-    //        "Start shooting",
-    //        Commands.sequence(
-    //            Commands.runOnce(
-    //                () ->
-    // superstructure.applyState(Superstructure.SuperstructureState.SCORING_WINDUP)),
-    //            Commands.waitSeconds(SCORE_WINDUP_SECONDS),
-    //            Commands.runOnce(
-    //                () -> superstructure.applyState(Superstructure.SuperstructureState.SCORING)),
-    //            Commands.idle()));
-    //    NamedCommands.registerCommand(
-    //        "Stop shooting",
-    //        Commands.runOnce(
-    //            () -> superstructure.applyState(Superstructure.SuperstructureState.IDLE),
-    //            superstructure));
+    NamedCommands.registerCommand(
+        "Intake out",
+        Commands.runOnce(
+            () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.IDLE),
+            intake));
+    NamedCommands.registerCommand(
+        "Intake in",
+        Commands.runOnce(
+            () -> intake.setState(Intake.ExtensionState.RETRACTING, Intake.RollerState.INTAKING),
+            intake));
+    NamedCommands.registerCommand(
+        "Start intaking",
+        Commands.runOnce(
+            () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.INTAKING),
+            intake));
+    NamedCommands.registerCommand(
+        "Stop intaking",
+        Commands.runOnce(
+            () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.IDLE), intake));
+    NamedCommands.registerCommand(
+        "Start shooting",
+        Commands.sequence(
+            Commands.runOnce(
+                () -> superstructure.applyState(Superstructure.SuperstructureState.WINDUP))));
+    NamedCommands.registerCommand(
+        "Stop shooting",
+        Commands.runOnce(
+            () -> superstructure.applyState(Superstructure.SuperstructureState.IDLE),
+            superstructure));
   }
 
   /**
