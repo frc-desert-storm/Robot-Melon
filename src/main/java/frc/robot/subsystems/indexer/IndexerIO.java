@@ -21,5 +21,7 @@ public interface IndexerIO {
 
   default void setIndexerSpeed(AngularVelocity speed) {}
 
+  default void setIndexerVolts(Voltage vols) {}
+
   default void stopIndexer() {}
 }

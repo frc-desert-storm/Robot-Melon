@@ -50,7 +50,11 @@ public class Intake extends SubsystemBase {
           extensionState = ExtensionState.EXTENDED;
         }
       }
-      case RETRACTING -> {}
+      case RETRACTING -> {
+        if (rollerState == RollerState.INTAKING) {
+          io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+        }
+      }
     }
   }
 
@@ -79,8 +83,14 @@ public class Intake extends SubsystemBase {
   public Command intake() {
     return Commands.startEnd(
         () -> setState(ExtensionState.EXTENDING, RollerState.INTAKING),
-        () -> setState(ExtensionState.RETRACTING, RollerState.IDLE),
+        () -> setState(ExtensionState.EXTENDED, RollerState.IDLE),
         this);
+  }
+
+  public Command retract() {
+    return this.startEnd(
+        () -> setState(ExtensionState.RETRACTING, RollerState.INTAKING),
+        () -> setState(ExtensionState.EXTENDING, RollerState.IDLE));
   }
 
   public Command zeroExtension() {

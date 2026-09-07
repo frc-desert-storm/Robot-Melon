@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+import static frc.robot.Constants.FieldConstants.HUB_CENTER;
 import static frc.robot.Constants.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -88,10 +90,10 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                // new VisionIOPhotonVision(
-                //     VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
-                // new VisionIOPhotonVision(
-                //     VisionConstants.rightCameraName, VisionConstants.robotToRightCamera),
+                new VisionIOPhotonVision(
+                    VisionConstants.leftCameraName, VisionConstants.robotToLeftCamera),
+                new VisionIOPhotonVision(
+                    VisionConstants.rightCameraName, VisionConstants.robotToRightCamera),
                 new VisionIOPhotonVision(
                     VisionConstants.turretCameraName,
                     timestamp -> getRobotToTurretCamera(turret.getTurnPositionAt(timestamp))));
@@ -169,6 +171,7 @@ public class RobotContainer {
     Logger.recordOutput("left", robotToLeftCamera);
     Logger.recordOutput("right", robotToRightCamera);
     Logger.recordOutput("turret", getRobotToTurretCamera(Rotation2d.kZero));
+    Logger.recordOutput("line", new Pose2d(HUB_CENTER.in(Meters), 0.0, new Rotation2d()));
     // Configure the button bindings
     driveBindings();
     configureBindings();
@@ -213,6 +216,8 @@ public class RobotContainer {
 
     controller.povUp().onTrue(intake.zeroExtension());
 
+    controller.leftBumper().whileTrue(intake.retract());
+
     //    controller
     //        .leftBumper()
     //        .whileTrue(
@@ -243,7 +248,9 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "Stop intaking",
         Commands.runOnce(
-            () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.IDLE), intake));
+            () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.IDLE),
+            intake));
+    NamedCommands.registerCommand("Zero intake", intake.zeroExtension().withTimeout(1.5));
     NamedCommands.registerCommand(
         "Start shooting",
         Commands.sequence(

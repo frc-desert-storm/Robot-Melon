@@ -1,6 +1,7 @@
 package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
@@ -17,7 +18,8 @@ public class Indexer extends SubsystemBase {
     this.state = state;
     switch (state) {
       case SHOOTING -> {
-        io.setIndexerSpeed(RPM.of(120));
+        //        io.setIndexerSpeed(RPM.of(120));
+        io.setIndexerVolts(Volts.of(12));
       }
       case REVERSE -> {
         io.setIndexerSpeed(RPM.of(-40));

@@ -1,5 +1,6 @@
 package frc.robot.subsystems.indexer;
 
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.Constants.IndexerConstants.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -68,6 +69,11 @@ public class IndexerIOKraken implements IndexerIO {
   @Override
   public void setIndexerSpeed(AngularVelocity speed) {
     indexerMotor.setControl(velocityReq.withVelocity(speed));
+  }
+
+  @Override
+  public void setIndexerVolts(Voltage vols) {
+    indexerMotor.setVoltage(vols.in(Volts));
   }
 
   @Override

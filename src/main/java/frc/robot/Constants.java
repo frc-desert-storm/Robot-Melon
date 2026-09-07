@@ -137,10 +137,11 @@ public final class Constants {
 
     public static final double INDEXER_GEAR_RATIO = (56.0 / 12) * 9; // 12:56 chain, max planetary
 
-    public static final Slot0Configs INDEXER_GAINS = new Slot0Configs().withKP(5).withKV(5);
+    public static final Slot0Configs INDEXER_GAINS =
+        new Slot0Configs().withKP(400).withKV(12).withKS(4);
 
     public static final CurrentLimitsConfigs INDEXER_CURRENT_LIMITS =
-        new CurrentLimitsConfigs().withSupplyCurrentLimit(15).withStatorCurrentLimit(40);
+        new CurrentLimitsConfigs().withSupplyCurrentLimit(60).withStatorCurrentLimit(40);
   }
 
   public static class TurretConstants {
@@ -263,9 +264,9 @@ public final class Constants {
     public static final Time ACTIVE_PRESHOOT_TIME = Seconds.of(2);
     public static final Time ACTIVE_POSTSHOOT_TIME = Seconds.of(1);
 
-    public static final Angle TURN_TOLERANCE = Degrees.of(2.0);
-    public static final Angle HOOD_TOLERANCE = Degrees.of(1.0);
-    public static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(50.0);
+    public static final Angle TURN_TOLERANCE = Degrees.of(8.0);
+    public static final Angle HOOD_TOLERANCE = Degrees.of(4.0);
+    public static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(200.0);
   }
 
   public static enum Mode {
@@ -285,7 +286,7 @@ public final class Constants {
 
     public static final Distance ALLIANCE_ZONE = Inches.of(156.06);
 
-    public static final Distance HUB_CENTER = Meters.of(2.600833);
+    public static final Distance HUB_CENTER = Meters.of(4.2);
 
     public static final Translation3d HUB_BLUE =
         new Translation3d(Inches.of(181.56), FIELD_WIDTH.div(2), Inches.of(56.4));

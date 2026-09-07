@@ -290,11 +290,11 @@ public class Turret extends SubsystemBase {
     Pose2d pose = poseSupplier.get();
 
     boolean passing = AllianceFlipUtil.applyX(pose.getX()) > FieldConstants.HUB_CENTER.in(Meter);
+    setTarget(passing ? getPassingTarget(pose) : FieldConstants.HUB_BLUE);
 
     switch (goal) {
       case SHOOTING:
         calculateShot(pose);
-        setTarget(passing ? getPassingTarget(pose) : FieldConstants.HUB_BLUE);
         break;
         //      case PASSING:
         //        calculateShot(pose);
@@ -351,16 +351,27 @@ public class Turret extends SubsystemBase {
   }
 
   public void idleTracking(Pose2d robotPose) {
-    var calculatedShot =
-        TurretCalculator.iterativeMovingShotFromMap(
-            robotPose, new ChassisSpeeds(), currentTarget, LOOKAHEAD_ITERATIONS);
+    ChassisSpeeds fieldSpeeds = fieldSpeedsSupplier.get();
+
+    ShotData calculatedShot;
+    if (Robot.isReal()) {
+      calculatedShot =
+          TurretCalculator.iterativeMovingShotFromMap(
+              robotPose, fieldSpeeds, currentTarget, LOOKAHEAD_ITERATIONS);
+    } else {
+      calculatedShot =
+          TurretCalculator.iterativeMovingShotFromFunnelClearance(
+              robotPose, fieldSpeeds, currentTarget, LOOKAHEAD_ITERATIONS);
+    }
     Angle azimuthAngle =
         TurretCalculator.calculateAzimuthAngle(
             robotPose, calculatedShot.target(), inputs.turnPosition);
-    ChassisSpeeds fieldSpeeds = fieldSpeedsSupplier.get();
     AngularVelocity azimuthVelocity = RadiansPerSecond.of(-fieldSpeeds.omegaRadiansPerSecond);
-
     io.setTurnSetpoint(azimuthAngle, azimuthVelocity);
+    // io.setHoodAngle(calculatedShot.getHoodAngle());
+    // io.setFlywheelSpeed(calculatedShot.getAngularExitVelocity().plus(flywheelFudgeFactor));
+
+    Logger.recordOutput("Turret/Shot", calculatedShot);
   }
 
   public Command zeroHoodSequence() {

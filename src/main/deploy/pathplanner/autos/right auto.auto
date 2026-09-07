@@ -7,6 +7,18 @@
         {
           "type": "named",
           "data": {
+            "name": "Zero intake"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "Intake out"
           }
         },
