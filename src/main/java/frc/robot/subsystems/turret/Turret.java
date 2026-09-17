@@ -17,6 +17,7 @@ import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -225,6 +226,10 @@ public class Turret extends SubsystemBase {
       Translation2d flipped = FlippingUtil.flipFieldPosition(target.toTranslation2d());
       currentTarget = new Translation3d(flipped.getX(), flipped.getY(), target.getZ());
     }
+  }
+
+  public Distance getDistanceToTarget() {
+    return TurretCalculator.getDistanceToTarget(poseSupplier.get(), currentTarget);
   }
 
   private Translation3d getPassingTarget(Pose2d pose) {

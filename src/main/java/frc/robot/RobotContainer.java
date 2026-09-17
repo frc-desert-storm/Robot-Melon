@@ -34,6 +34,7 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOKraken;
 import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
@@ -60,8 +61,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Intake intake =
       new Intake(RobotBase.isReal() ? new IntakeIOKraken() : new IntakeIOSim());
-  private final Indexer indexer =
-      new Indexer(RobotBase.isReal() ? new IndexerIOKraken() : new IndexerIOSim());
+  private final Indexer indexer;
 
   private final Superstructure superstructure;
 
@@ -87,6 +87,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
+        indexer = new Indexer(new IndexerIOKraken(), turret::getDistanceToTarget);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -111,6 +112,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
+        indexer = new Indexer(new IndexerIOSim(), turret::getDistanceToTarget);
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -136,6 +138,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
+        indexer = new Indexer(new IndexerIO() {}, turret::getDistanceToTarget);
         vision =
             new Vision(
                 drive::addVisionMeasurement,

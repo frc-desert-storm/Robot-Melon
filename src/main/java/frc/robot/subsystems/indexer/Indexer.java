@@ -1,29 +1,34 @@
 package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.Constants.IndexerConstants.*;
 
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Indexer extends SubsystemBase {
   private final IndexerIO io;
   private final IndexerIOInputsAutoLogged inputs = new IndexerIOInputsAutoLogged();
+  private final Supplier<Distance> distanceSupplier;
 
   private Double stalledTime = 0.0;
   private Double startedShootingTime = 0.0;
 
-  public Indexer(IndexerIO io) {
+  public Indexer(IndexerIO io, Supplier<Distance> distanceSupplier) {
     this.io = io;
+    this.distanceSupplier = distanceSupplier;
   }
 
   public void setState(State state) {
     this.state = state;
     switch (state) {
       case SHOOTING -> {
-        //        io.setIndexerSpeed(RPM.of(120));
+        var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
+        io.setIndexerSpeed(commandedSpeed);
         startedShootingTime = Timer.getFPGATimestamp();
-        io.setIndexerVolts(Volts.of(12));
       }
       case REVERSE -> {
         io.setIndexerSpeed(RPM.of(-40));
@@ -40,9 +45,14 @@ public class Indexer extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Indexer", inputs);
 
+    Distance distance = distanceSupplier.get();
+    Logger.recordOutput("Indexer/DistanceToTarget", distance == null ? 0.0 : distance.in(Meters));
+
     switch (state) {
       case SHOOTING -> {
-        //        io.setIndexerVolts(Volts.of(12));
+        var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
+        io.setIndexerSpeed(commandedSpeed);
+
         if (inputs.indexerRollerSpeed.abs(RotationsPerSecond) <= 0.02
             && startedShootingTime < Timer.getFPGATimestamp() - 1) {
           setState(State.REVERSE);
@@ -50,7 +60,6 @@ public class Indexer extends SubsystemBase {
         }
       }
       case REVERSE -> {
-        //        io.setIndexerSpeed(RPM.of(-40));
         if (stalledTime < Timer.getFPGATimestamp() - 1) {
           setState(State.SHOOTING);
         }
