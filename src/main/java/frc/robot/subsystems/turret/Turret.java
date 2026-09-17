@@ -154,7 +154,7 @@ public class Turret extends SubsystemBase {
       case TUNING:
         io.setFlywheelSpeed(RotationsPerSecond.of(tuningFlywheelSpeed.get() / 60));
         io.setHoodAngle(Degrees.of(tuningHoodAngle.get()));
-        io.setTurnSetpoint(Radians.of(0), RadiansPerSecond.of(0));
+        io.setTurnSetpoint(Degrees.of(0), RadiansPerSecond.of(0));
         break;
       case DUCKING:
         io.setHoodAngle(MIN_HOOD_ANGLE);
