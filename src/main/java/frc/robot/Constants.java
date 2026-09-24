@@ -138,7 +138,7 @@ public final class Constants {
     public static final double INDEXER_GEAR_RATIO = (56.0 / 12) * 9; // 12:56 chain, max planetary
 
     public static final Slot0Configs INDEXER_GAINS =
-        new Slot0Configs().withKP(400).withKV(12).withKS(4);
+        new Slot0Configs().withKP(20).withKV(4.9).withKS(6);
 
     public static final CurrentLimitsConfigs INDEXER_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLimit(60).withStatorCurrentLimit(40);
@@ -147,11 +147,12 @@ public final class Constants {
         new InterpolatingDoubleTreeMap();
 
     static {
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(39), 120.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(78), 120.0);
+      INDEXER_SPEED_MAP.put(Units.inchesToMeters(39), 40.0);
+      INDEXER_SPEED_MAP.put(Units.inchesToMeters(78), 100.0);
       INDEXER_SPEED_MAP.put(Units.inchesToMeters(135), 120.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(192), 120.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(213), 120.0);
+      INDEXER_SPEED_MAP.put(Units.inchesToMeters(192), 100.0);
+      INDEXER_SPEED_MAP.put(Units.inchesToMeters(213), 70.0);
+      INDEXER_SPEED_MAP.put(Units.inchesToMeters(270), 120.0);
     }
   }
 
@@ -277,7 +278,7 @@ public final class Constants {
 
     public static final Angle TURN_TOLERANCE = Degrees.of(8.0);
     public static final Angle HOOD_TOLERANCE = Degrees.of(4.0);
-    public static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(200.0);
+    public static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(250.0);
   }
 
   public static enum Mode {
@@ -297,7 +298,7 @@ public final class Constants {
 
     public static final Distance ALLIANCE_ZONE = Inches.of(156.06);
 
-    public static final Distance HUB_CENTER = Meters.of(4.2);
+    public static final Distance HUB_CENTER = Meters.of(5.2);
 
     public static final Translation3d HUB_BLUE =
         new Translation3d(Inches.of(181.56), FIELD_WIDTH.div(2), Inches.of(56.4));

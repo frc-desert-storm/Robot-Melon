@@ -253,7 +253,8 @@ public class RobotContainer {
         Commands.runOnce(
             () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.IDLE),
             intake));
-    NamedCommands.registerCommand("Zero intake", intake.zeroExtension().withTimeout(1.5));
+    NamedCommands.registerCommand(
+        "Zero intake", intake.zeroExtension().withTimeout(1.0).repeatedly().withTimeout(3.0));
     NamedCommands.registerCommand(
         "Start shooting",
         Commands.sequence(

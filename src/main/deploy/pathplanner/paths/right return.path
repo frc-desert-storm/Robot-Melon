@@ -20,12 +20,28 @@
         "y": 0.452
       },
       "prevControl": {
-        "x": 7.3559544546482485,
-        "y": 0.184852294125412
+        "x": 7.298214285714286,
+        "y": 0.24503571428571494
+      },
+      "nextControl": {
+        "x": 3.4007475526798068,
+        "y": 0.48960333440412035
+      },
+      "isLocked": false,
+      "linkedName": "Right return end"
+    },
+    {
+      "anchor": {
+        "x": 2.2125357142857136,
+        "y": 2.1238214285714285
+      },
+      "prevControl": {
+        "x": 2.4068928571428567,
+        "y": 1.3463928571428574
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right return end"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],

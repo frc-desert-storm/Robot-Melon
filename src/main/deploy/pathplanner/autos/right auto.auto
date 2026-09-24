@@ -11,12 +11,6 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.5
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "Intake out"
@@ -38,6 +32,12 @@
           "type": "named",
           "data": {
             "name": "Stop intaking"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake in"
           }
         },
         {

@@ -35,9 +35,9 @@ public class Intake extends SubsystemBase {
     Logger.recordOutput("Intake/rollerState", rollerState);
     switch (extensionState) {
       case EXTENDED -> {
-        if (rollerState == RollerState.INTAKING) {
-          io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
-        }
+        //        if (rollerState == RollerState.INTAKING) {
+        //          io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+        //        }
         if (INTAKING_POSE.in(Inch) - inputs.extensionLeftPosition.in(Inch) > 1.5
             | INTAKING_POSE.in(Inch) - inputs.extensionPosition.in(Inch) > 1.5) {
           setState(ExtensionState.RETRACTING, rollerState);
@@ -50,11 +50,11 @@ public class Intake extends SubsystemBase {
           extensionState = ExtensionState.EXTENDED;
         }
       }
-      case RETRACTING -> {
-        if (rollerState == RollerState.INTAKING) {
-          io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
-        }
-      }
+        //      case RETRACTING -> {
+        //        if (rollerState == RollerState.INTAKING) {
+        //          io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+        //        }
+        //      }
     }
   }
 
@@ -67,7 +67,7 @@ public class Intake extends SubsystemBase {
       case EXTENDING -> io.setExtensionDistance(INTAKING_POSE);
     }
     switch (rollerState) {
-        // case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
+      case INTAKING -> io.setRollerSpeed(RotationsPerSecond.of(1000.0 / 60));
       case REVERSE -> io.setRollerSpeed(RotationsPerSecond.of(-1000.0 / 60));
       case IDLE -> io.stopRoller();
     }

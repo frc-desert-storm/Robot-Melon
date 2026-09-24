@@ -27,7 +27,8 @@ public class IndexerIOKraken implements IndexerIO {
   private final StatusSignal<Voltage> indexerRollerAppliedVolts;
   private final StatusSignal<Current> indexerRollerCurrent;
 
-  private final VelocityVoltage velocityReq = new VelocityVoltage(0).withEnableFOC(true);
+  private final VelocityVoltage velocityReq =
+      new VelocityVoltage(0).withEnableFOC(true).withSlot(0);
 
   private final NeutralOut neutralOut = new NeutralOut();
 

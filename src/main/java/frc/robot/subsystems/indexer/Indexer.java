@@ -26,12 +26,14 @@ public class Indexer extends SubsystemBase {
     this.state = state;
     switch (state) {
       case SHOOTING -> {
-        var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
-        io.setIndexerSpeed(commandedSpeed);
+        //        var commandedSpeed =
+        // RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
+        //        io.setIndexerSpeed(commandedSpeed);
+        io.setIndexerVolts(Volts.of(12.0));
         startedShootingTime = Timer.getFPGATimestamp();
       }
       case REVERSE -> {
-        io.setIndexerSpeed(RPM.of(-40));
+        io.setIndexerVolts(Volts.of(-12.0));
       }
       case IDLE -> {
         io.stopIndexer();
@@ -46,12 +48,13 @@ public class Indexer extends SubsystemBase {
     Logger.processInputs("Indexer", inputs);
 
     Distance distance = distanceSupplier.get();
-    Logger.recordOutput("Indexer/DistanceToTarget", distance == null ? 0.0 : distance.in(Meters));
+    var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
+    Logger.recordOutput("Indexer/DistanceToTarget", distance);
+    Logger.recordOutput("Indexer/speedwantdistance", commandedSpeed);
 
     switch (state) {
       case SHOOTING -> {
-        var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
-        io.setIndexerSpeed(commandedSpeed);
+        //        io.setIndexerSpeed(commandedSpeed);
 
         if (inputs.indexerRollerSpeed.abs(RotationsPerSecond) <= 0.02
             && startedShootingTime < Timer.getFPGATimestamp() - 1) {
