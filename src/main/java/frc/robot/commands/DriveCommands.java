@@ -65,6 +65,15 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
+    return joystickDrive(drive, xSupplier, ySupplier, omegaSupplier, () -> 1.0);
+  }
+
+  public static Command joystickDrive(
+      Drive drive,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier,
+      DoubleSupplier speedScaleSupplier) {
     return Commands.run(
         () -> {
           if (DriverStation.isTeleop()) {
@@ -77,6 +86,10 @@ public class DriveCommands {
 
             // Square rotation value for more precise control
             omega = Math.copySign(omega * omega, omega);
+
+            double scale = MathUtil.clamp(speedScaleSupplier.getAsDouble(), 0.0, 1.0);
+            linearVelocity = linearVelocity.times(scale);
+            omega *= scale;
 
             // Convert to field relative speeds & send command
             ChassisSpeeds speeds =

@@ -212,6 +212,18 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
+  private static final double SHOOTING_DRIVE_SCALE = 0.3;
+
+  private double driveSpeedScale() {
+    var state = superstructure.getState();
+    boolean shooting =
+        state == Superstructure.SuperstructureState.WINDUP
+            || state == Superstructure.SuperstructureState.SHOOTING
+            || state == Superstructure.SuperstructureState.TESTING
+            || state == Superstructure.SuperstructureState.TESTING_WINDUP;
+    return shooting ? SHOOTING_DRIVE_SCALE : 1.0;
+  }
+
   private void driveBindings() {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -219,7 +231,8 @@ public class RobotContainer {
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -controller.getRightX(),
+            this::driveSpeedScale));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
