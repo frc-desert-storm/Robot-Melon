@@ -3,6 +3,9 @@ package frc.robot.subsystems.indexer;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.IndexerConstants.*;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -47,10 +50,10 @@ public class Indexer extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Indexer", inputs);
 
-    Distance distance = distanceSupplier.get();
-    var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
-    Logger.recordOutput("Indexer/DistanceToTarget", distance);
-    Logger.recordOutput("Indexer/speedwantdistance", commandedSpeed);
+    //    Distance distance = distanceSupplier.get();
+    //    var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
+    //    Logger.recordOutput("Indexer/DistanceToTarget", distance);
+    //    Logger.recordOutput("Indexer/speedwantdistance", commandedSpeed);
 
     switch (state) {
       case SHOOTING -> {
@@ -71,11 +74,17 @@ public class Indexer extends SubsystemBase {
         io.stopIndexer();
       }
     }
+    update3dPose(inputs.indexerRollerAngle);
   }
 
   public void stop() {
     state = State.IDLE;
     io.stopIndexer();
+  }
+
+  public void update3dPose(Angle azimuthAngle) {
+    Pose3d indexerPose = new Pose3d(0, 0, 0, new Rotation3d(0, 0, -azimuthAngle.in(Radians)));
+    Logger.recordOutput("Indexer/IndexerPose", indexerPose);
   }
 
   public State state = State.IDLE;

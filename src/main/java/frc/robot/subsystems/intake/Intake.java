@@ -3,6 +3,10 @@ package frc.robot.subsystems.intake;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.IntakeConstants.*;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -56,6 +60,7 @@ public class Intake extends SubsystemBase {
         //        }
         //      }
     }
+    update3dPose(inputs.extensionPosition);
   }
 
   public void setState(ExtensionState extensionState, RollerState rollerState) {
@@ -119,5 +124,20 @@ public class Intake extends SubsystemBase {
     INTAKING,
     REVERSE,
     IDLE
+  }
+
+  public boolean isIntaking() {
+    return rollerState == RollerState.INTAKING;
+  }
+
+  public boolean isExtended() {
+    return extensionState == ExtensionState.EXTENDED || extensionState == ExtensionState.EXTENDING;
+  }
+
+  public void update3dPose(Distance extension) {
+    double a = extension.minus(STOW_POSE).in(Meters);
+    double tilt = Math.toRadians(-15.0);
+    Translation3d pos = new Translation3d(-a * Math.cos(tilt), 0.0, a * Math.sin(tilt));
+    Logger.recordOutput("Intake/IntakePose", new Pose3d(pos, new Rotation3d(0, 0, 0)));
   }
 }

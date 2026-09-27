@@ -202,6 +202,14 @@ public class Turret extends SubsystemBase {
     return new Rotation2d(inputs.turnPosition.in(Radians));
   }
 
+  public Angle getHoodPosition() {
+    return inputs.hoodPosition;
+  }
+
+  public AngularVelocity getFlywheelSpeed() {
+    return inputs.flywheelSpeed;
+  }
+
   public Rotation2d getTurnPositionAt(double timestampSeconds) {
     return turnPositionBuffer
         .getSample(timestampSeconds)

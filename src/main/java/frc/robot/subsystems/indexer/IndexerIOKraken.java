@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
@@ -26,6 +27,7 @@ public class IndexerIOKraken implements IndexerIO {
   private final StatusSignal<AngularVelocity> indexerRollerVelocity;
   private final StatusSignal<Voltage> indexerRollerAppliedVolts;
   private final StatusSignal<Current> indexerRollerCurrent;
+  private final StatusSignal<Angle> indexerRollerAngle;
 
   private final VelocityVoltage velocityReq =
       new VelocityVoltage(0).withEnableFOC(true).withSlot(0);
@@ -49,6 +51,7 @@ public class IndexerIOKraken implements IndexerIO {
     indexerRollerVelocity = indexerMotor.getVelocity();
     indexerRollerAppliedVolts = indexerMotor.getMotorVoltage();
     indexerRollerCurrent = indexerMotor.getSupplyCurrent();
+    indexerRollerAngle = indexerMotor.getPosition();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0, indexerRollerVelocity, indexerRollerAppliedVolts, indexerRollerCurrent);
@@ -65,6 +68,7 @@ public class IndexerIOKraken implements IndexerIO {
     inputs.indexerRollerSpeed = indexerRollerVelocity.getValue();
     inputs.indexerRollerAppliedVolts = indexerRollerAppliedVolts.getValue();
     inputs.indexerRollerCurrent = indexerRollerCurrent.getValue();
+    inputs.indexerRollerAngle = indexerRollerAngle.getValue();
   }
 
   @Override

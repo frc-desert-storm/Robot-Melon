@@ -7,22 +7,32 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.Constants.FieldConstants.HUB_CENTER;
+import static frc.robot.Constants.TurretConstants.FLYWHEEL_RADIUS;
+import static frc.robot.Constants.TurretConstants.ROBOT_TO_TURRET_TRANSFORM;
 import static frc.robot.Constants.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.Dimensions;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -41,10 +51,12 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOKraken;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretCalculator;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOKraken;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.FuelSim;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -64,6 +76,13 @@ public class RobotContainer {
   private final Indexer indexer;
 
   private final Superstructure superstructure;
+
+  public final FuelSim fuelSim = new FuelSim();
+
+  private static final int SIM_FUEL_CAPACITY = 65;
+  private static final double SIM_SHOT_INTERVAL_SEC = 0.1;
+  private int simFuelStored = 8;
+  private double lastSimShotTime = 0.0;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -152,6 +171,8 @@ public class RobotContainer {
 
     registerNamedCommands();
 
+    configureFuelSim();
+
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -230,6 +251,72 @@ public class RobotContainer {
     //                }));
 
     //    controller.povRight().whileTrue(superstructure.reverse());
+  }
+
+  private void configureFuelSim() {
+    fuelSim.spawnStartingFuel();
+
+    fuelSim.registerRobot(
+        Dimensions.FULL_WIDTH,
+        Dimensions.FULL_LENGTH,
+        Dimensions.BUMPER_HEIGHT,
+        drive::getPose,
+        () -> ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()));
+
+    double halfLengthM = Dimensions.FULL_LENGTH.in(Meters) / 2.0;
+    double intakeDepthM = Inches.of(12).in(Meters);
+    double halfIntakeWidthM = Inches.of(14).in(Meters);
+    fuelSim.registerIntake(
+        -halfLengthM - intakeDepthM,
+        -halfLengthM,
+        -halfIntakeWidthM,
+        halfIntakeWidthM,
+        () -> intake.isExtended() && intake.isIntaking() && simFuelStored < SIM_FUEL_CAPACITY,
+        () -> {
+          if (simFuelStored < SIM_FUEL_CAPACITY) {
+            simFuelStored++;
+          }
+        });
+
+    fuelSim.start();
+    SmartDashboard.putData(
+        Commands.runOnce(
+                () -> {
+                  fuelSim.clearFuel();
+                  fuelSim.spawnStartingFuel();
+                  simFuelStored = 0;
+                })
+            .withName("Reset Fuel")
+            .ignoringDisable(true));
+  }
+
+  public void updateFuelSimShooting() {
+    Logger.recordOutput("FuelSim/StoredFuel", simFuelStored);
+    var state = superstructure.getState();
+    boolean shooting =
+        state == Superstructure.SuperstructureState.SHOOTING
+            || state == Superstructure.SuperstructureState.TESTING;
+    if (!shooting || simFuelStored <= 0) {
+      return;
+    }
+    if (!turret.ready()) {
+      return;
+    }
+    if (turret.getFlywheelSpeed().abs(RPM) < 100) {
+      return;
+    }
+    double now = Timer.getFPGATimestamp();
+    if (now - lastSimShotTime < SIM_SHOT_INTERVAL_SEC) {
+      return;
+    }
+    lastSimShotTime = now;
+    simFuelStored--;
+
+    fuelSim.launchFuel(
+        TurretCalculator.angularToLinearVelocity(turret.getFlywheelSpeed(), FLYWHEEL_RADIUS),
+        Degrees.of(90).minus(turret.getHoodPosition()),
+        Radians.of(turret.getTurnPosition().getRadians()),
+        ROBOT_TO_TURRET_TRANSFORM.getMeasureZ());
   }
 
   private void registerNamedCommands() {
