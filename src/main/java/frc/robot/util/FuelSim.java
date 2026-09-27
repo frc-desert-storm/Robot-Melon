@@ -640,8 +640,9 @@ public class FuelSim {
   protected void handleIntakes(ArrayList<Fuel> fuels) {
     Pose2d robot = robotPoseSupplier.get();
     for (SimIntake intake : intakes) {
+      intake.creditBudget(PERIOD / subticks);
       for (int i = 0; i < fuels.size(); i++) {
-        if (intake.shouldIntake(fuels.get(i), robot)) {
+        if (intake.shouldIntake(fuels.get(i), robot) && intake.tryConsume()) {
           fuels.remove(i);
           i--;
         }
@@ -693,6 +694,31 @@ public class FuelSim {
 
   /**
    * Registers an intake with the fuel simulator. This intake will remove fuel from the field based
+   * on the `ableToIntake` parameter, limited to `maxFuelPerSecond`.
+   *
+   * @param xMin Minimum x position for the bounding box
+   * @param xMax Maximum x position for the bounding box
+   * @param yMin Minimum y position for the bounding box
+   * @param yMax Maximum y position for the bounding box
+   * @param ableToIntake Should a return a boolean whether the intake is active
+   * @param intakeCallback Function to call when a fuel is intaked
+   * @param maxFuelPerSecond Maximum fuel to intake per second (use Double.POSITIVE_INFINITY for no
+   *     limit)
+   */
+  public void registerIntake(
+      double xMin,
+      double xMax,
+      double yMin,
+      double yMax,
+      BooleanSupplier ableToIntake,
+      Runnable intakeCallback,
+      double maxFuelPerSecond) {
+    intakes.add(
+        new SimIntake(xMin, xMax, yMin, yMax, ableToIntake, intakeCallback, maxFuelPerSecond));
+  }
+
+  /**
+   * Registers an intake with the fuel simulator. This intake will remove fuel from the field based
    * on the `ableToIntake` parameter.
    *
    * @param xMin Minimum x position for the bounding box
@@ -709,7 +735,7 @@ public class FuelSim {
       double yMax,
       BooleanSupplier ableToIntake,
       Runnable intakeCallback) {
-    intakes.add(new SimIntake(xMin, xMax, yMin, yMax, ableToIntake, intakeCallback));
+    registerIntake(xMin, xMax, yMin, yMax, ableToIntake, intakeCallback, Double.POSITIVE_INFINITY);
   }
 
   /**
@@ -920,6 +946,8 @@ public class FuelSim {
     double xMin, xMax, yMin, yMax;
     BooleanSupplier ableToIntake;
     Runnable callback;
+    double maxFuelPerSecond;
+    double intakeBudget = 0.0;
 
     protected SimIntake(
         double xMin,
@@ -927,13 +955,39 @@ public class FuelSim {
         double yMin,
         double yMax,
         BooleanSupplier ableToIntake,
-        Runnable intakeCallback) {
+        Runnable intakeCallback,
+        double maxFuelPerSecond) {
       this.xMin = xMin;
       this.xMax = xMax;
       this.yMin = yMin;
       this.yMax = yMax;
       this.ableToIntake = ableToIntake;
       this.callback = intakeCallback;
+      this.maxFuelPerSecond = maxFuelPerSecond;
+    }
+
+    /** Accrues intake budget based on sim time. Call once per physics subtick. */
+    protected void creditBudget(double dtSeconds) {
+      if (Double.isInfinite(maxFuelPerSecond)) return;
+      intakeBudget = Math.min(1.0, intakeBudget + maxFuelPerSecond * dtSeconds);
+    }
+
+    /**
+     * Consumes one fuel from the budget (unlimited if no cap). Runs the callback on success.
+     *
+     * @return true if a fuel may be intaked now
+     */
+    protected boolean tryConsume() {
+      if (Double.isInfinite(maxFuelPerSecond)) {
+        callback.run();
+        return true;
+      }
+      if (intakeBudget >= 1.0) {
+        intakeBudget -= 1.0;
+        callback.run();
+        return true;
+      }
+      return false;
     }
 
     protected boolean shouldIntake(Fuel fuel, Pose2d robotPose) {
@@ -944,15 +998,10 @@ public class FuelSim {
               .relativeTo(robotPose)
               .getTranslation();
 
-      boolean result =
-          fuelRelativePos.getX() >= xMin
-              && fuelRelativePos.getX() <= xMax
-              && fuelRelativePos.getY() >= yMin
-              && fuelRelativePos.getY() <= yMax;
-      if (result) {
-        callback.run();
-      }
-      return result;
+      return fuelRelativePos.getX() >= xMin
+          && fuelRelativePos.getX() <= xMax
+          && fuelRelativePos.getY() >= yMin
+          && fuelRelativePos.getY() <= yMax;
     }
   }
 }

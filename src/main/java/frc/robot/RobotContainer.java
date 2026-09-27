@@ -81,6 +81,7 @@ public class RobotContainer {
 
   private static final int SIM_FUEL_CAPACITY = 65;
   private static final double SIM_SHOT_INTERVAL_SEC = 0.1;
+  private static final double SIM_MAX_INTAKE_FUEL_PER_SEC = 12.0;
   private int simFuelStored = 8;
   private double lastSimShotTime = 0.0;
 
@@ -276,7 +277,8 @@ public class RobotContainer {
           if (simFuelStored < SIM_FUEL_CAPACITY) {
             simFuelStored++;
           }
-        });
+        },
+        SIM_MAX_INTAKE_FUEL_PER_SEC);
 
     fuelSim.start();
     SmartDashboard.putData(
