@@ -16,42 +16,47 @@
     },
     {
       "anchor": {
-        "x": 7.798854399940609,
-        "y": 6.575291282825346
+        "x": 8.491781765319626,
+        "y": 6.761470251425082
       },
       "prevControl": {
-        "x": 7.798854399940609,
-        "y": 7.375291282825347
+        "x": 8.126126672129631,
+        "y": 7.473015297661949
       },
       "nextControl": {
-        "x": 7.798854399940609,
-        "y": 5.7451124625884855
+        "x": 8.606048981941498,
+        "y": 6.539112424476063
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 8.133168103448277,
-        "y": 4.865765086206896
+        "x": 8.491781765319626,
+        "y": 4.795670774379072
       },
       "prevControl": {
-        "x": 8.133168103448277,
-        "y": 5.93889367271929
+        "x": 8.616910881514658,
+        "y": 5.926881839118486
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Left Swipe end"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.67,
+      "rotationDegrees": 63.94867277713295
+    }
+  ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
       "minWaypointRelativePos": 0.9768214370265161,
       "maxWaypointRelativePos": 2.0,
       "constraints": {
-        "maxVelocity": 1.5,
+        "maxVelocity": 0.75,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -61,7 +66,20 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Intake out",
+      "waypointRelativePos": 0.25387219800747196,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Start intaking",
+      "waypointRelativePos": 0.3063511830635119,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
@@ -72,7 +90,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.04396469557587943
   },
   "reversed": false,
   "folder": null,

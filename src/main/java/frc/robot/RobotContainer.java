@@ -80,7 +80,7 @@ public class RobotContainer {
   public final FuelSim fuelSim = new FuelSim();
 
   private static final int SIM_FUEL_CAPACITY = 65;
-  private static final double SIM_SHOT_INTERVAL_SEC = 0.1;
+  private static final double SIM_SHOT_INTERVAL_SEC = 0.18;
   private static final double SIM_MAX_INTAKE_FUEL_PER_SEC = 12.0;
   private int simFuelStored = 8;
   private double lastSimShotTime = 0.0;
@@ -106,7 +106,8 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        turret = new Turret(new TurretIOKraken(), drive::getPose, drive::getChassisSpeeds);
+        turret =
+            new Turret(new TurretIOKraken(), drive::getPose, this::getFieldRelativeChassisSpeeds);
         indexer = new Indexer(new IndexerIOKraken(), turret::getDistanceToTarget);
         vision =
             new Vision(
@@ -119,7 +120,8 @@ public class RobotContainer {
                     VisionConstants.turretCameraName,
                     timestamp -> getRobotToTurretCamera(turret.getTurnPositionAt(timestamp))));
         superstructure =
-            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
+            new Superstructure(
+                turret, indexer, drive::getPose, this::getFieldRelativeChassisSpeeds);
         break;
 
       case SIM:
@@ -131,7 +133,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        turret = new Turret(new TurretIOSim(), drive::getPose, drive::getChassisSpeeds);
+        turret = new Turret(new TurretIOSim(), drive::getPose, this::getFieldRelativeChassisSpeeds);
         indexer = new Indexer(new IndexerIOSim(), turret::getDistanceToTarget);
         vision =
             new Vision(
@@ -145,7 +147,8 @@ public class RobotContainer {
                     () -> getRobotToTurretCamera(turret.getTurnPosition()),
                     drive::getPose));
         superstructure =
-            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
+            new Superstructure(
+                turret, indexer, drive::getPose, this::getFieldRelativeChassisSpeeds);
         break;
 
       default:
@@ -157,7 +160,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        turret = new Turret(new TurretIO() {}, drive::getPose, drive::getChassisSpeeds);
+        turret = new Turret(new TurretIO() {}, drive::getPose, this::getFieldRelativeChassisSpeeds);
         indexer = new Indexer(new IndexerIO() {}, turret::getDistanceToTarget);
         vision =
             new Vision(
@@ -166,7 +169,8 @@ public class RobotContainer {
                 new VisionIO() {},
                 new VisionIO() {});
         superstructure =
-            new Superstructure(turret, indexer, drive::getPose, drive::getChassisSpeeds);
+            new Superstructure(
+                turret, indexer, drive::getPose, this::getFieldRelativeChassisSpeeds);
         break;
     }
 
@@ -255,6 +259,8 @@ public class RobotContainer {
   }
 
   private void configureFuelSim() {
+    fuelSim.setSubticks(10);
+    fuelSim.setLoggingFrequency(50);
     fuelSim.spawnStartingFuel();
 
     fuelSim.registerRobot(
@@ -262,7 +268,7 @@ public class RobotContainer {
         Dimensions.FULL_LENGTH,
         Dimensions.BUMPER_HEIGHT,
         drive::getPose,
-        () -> ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()));
+        this::getFieldRelativeChassisSpeeds);
 
     double halfLengthM = Dimensions.FULL_LENGTH.in(Meters) / 2.0;
     double intakeDepthM = Inches.of(12).in(Meters);
@@ -340,8 +346,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "Stop intaking",
         Commands.runOnce(
-            () -> intake.setState(Intake.ExtensionState.EXTENDING, Intake.RollerState.IDLE),
-            intake));
+            () -> intake.setState(Intake.ExtensionState.IDLE, Intake.RollerState.IDLE), intake));
     NamedCommands.registerCommand(
         "Zero intake", intake.zeroExtension().withTimeout(1.0).repeatedly().withTimeout(3.0));
     NamedCommands.registerCommand(
@@ -356,11 +361,10 @@ public class RobotContainer {
             superstructure));
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
+  private ChassisSpeeds getFieldRelativeChassisSpeeds() {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation());
+  }
+
   public Command getAutonomousCommand() {
     return autoChooser.get();
   }
