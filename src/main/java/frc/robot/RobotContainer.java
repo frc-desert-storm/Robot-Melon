@@ -108,7 +108,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         turret =
             new Turret(new TurretIOKraken(), drive::getPose, this::getFieldRelativeChassisSpeeds);
-        indexer = new Indexer(new IndexerIOKraken(), turret::getDistanceToTarget);
+        indexer = new Indexer(new IndexerIOKraken());
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -134,7 +134,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         turret = new Turret(new TurretIOSim(), drive::getPose, this::getFieldRelativeChassisSpeeds);
-        indexer = new Indexer(new IndexerIOSim(), turret::getDistanceToTarget);
+        indexer = new Indexer(new IndexerIOSim());
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -161,7 +161,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         turret = new Turret(new TurretIO() {}, drive::getPose, this::getFieldRelativeChassisSpeeds);
-        indexer = new Indexer(new IndexerIO() {}, turret::getDistanceToTarget);
+        indexer = new Indexer(new IndexerIO() {});
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -196,11 +196,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-    Logger.recordOutput("left", robotToLeftCamera);
-    Logger.recordOutput("right", robotToRightCamera);
-    Logger.recordOutput("turret", getRobotToTurretCamera(Rotation2d.kZero));
-    Logger.recordOutput("line", new Pose2d(HUB_CENTER.in(Meters), 0.0, new Rotation2d()));
     // Configure the button bindings
     driveBindings();
     configureBindings();

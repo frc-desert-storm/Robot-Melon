@@ -142,18 +142,6 @@ public final class Constants {
 
     public static final CurrentLimitsConfigs INDEXER_CURRENT_LIMITS =
         new CurrentLimitsConfigs().withSupplyCurrentLimit(60).withStatorCurrentLimit(40);
-
-    public static final InterpolatingDoubleTreeMap INDEXER_SPEED_MAP =
-        new InterpolatingDoubleTreeMap();
-
-    static {
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(39), 40.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(78), 100.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(135), 120.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(192), 100.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(213), 70.0);
-      INDEXER_SPEED_MAP.put(Units.inchesToMeters(270), 120.0);
-    }
   }
 
   public static class TurretConstants {

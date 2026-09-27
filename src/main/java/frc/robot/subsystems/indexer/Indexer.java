@@ -6,32 +6,25 @@ import static frc.robot.Constants.IndexerConstants.*;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Indexer extends SubsystemBase {
   private final IndexerIO io;
   private final IndexerIOInputsAutoLogged inputs = new IndexerIOInputsAutoLogged();
-  private final Supplier<Distance> distanceSupplier;
 
   private Double stalledTime = 0.0;
   private Double startedShootingTime = 0.0;
 
-  public Indexer(IndexerIO io, Supplier<Distance> distanceSupplier) {
+  public Indexer(IndexerIO io) {
     this.io = io;
-    this.distanceSupplier = distanceSupplier;
   }
 
   public void setState(State state) {
     this.state = state;
     switch (state) {
       case SHOOTING -> {
-        //        var commandedSpeed =
-        // RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
-        //        io.setIndexerSpeed(commandedSpeed);
         io.setIndexerVolts(Volts.of(12.0));
         startedShootingTime = Timer.getFPGATimestamp();
       }
@@ -49,11 +42,6 @@ public class Indexer extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Indexer", inputs);
-
-    //    Distance distance = distanceSupplier.get();
-    //    var commandedSpeed = RPM.of(INDEXER_SPEED_MAP.get(distanceSupplier.get().in(Meters)));
-    //    Logger.recordOutput("Indexer/DistanceToTarget", distance);
-    //    Logger.recordOutput("Indexer/speedwantdistance", commandedSpeed);
 
     switch (state) {
       case SHOOTING -> {
