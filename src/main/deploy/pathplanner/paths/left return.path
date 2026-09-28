@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 8.491781765319626,
-        "y": 4.795670774379072
+        "y": 4.640651465798046
       },
       "prevControl": null,
       "nextControl": {
         "x": 8.298332209379872,
-        "y": 6.687060642305778
+        "y": 6.532041333724752
       },
       "isLocked": false,
       "linkedName": "Left Swipe end"
@@ -73,7 +73,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.04396469557587943
+    "rotation": -1.3885863669577765
   },
   "useDefaultConstraints": true
 }

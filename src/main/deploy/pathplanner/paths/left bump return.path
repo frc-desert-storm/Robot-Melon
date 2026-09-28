@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 8.491781765319626,
-        "y": 4.795670774379072
+        "y": 4.640651465798046
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.851485329295603,
-        "y": 5.719381584639658
+        "x": 5.509513786390471,
+        "y": 5.498032592375814
       },
       "isLocked": false,
       "linkedName": "Left Swipe end"
@@ -20,8 +20,8 @@
         "y": 5.591425017813518
       },
       "prevControl": {
-        "x": 4.667395122913273,
-        "y": 5.77676729183632
+        "x": 5.516986334486969,
+        "y": 5.508447997251628
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,7 +31,38 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Intake in",
+      "waypointRelativePos": 0.4058851572229145,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "sequential",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Intake in"
+              }
+            },
+            {
+              "type": "wait",
+              "data": {
+                "waitTime": 1.0
+              }
+            },
+            {
+              "type": "named",
+              "data": {
+                "name": "Stop intaking"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
@@ -48,7 +79,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.04396469557587943
+    "rotation": -1.3885863669577765
   },
   "useDefaultConstraints": true
 }

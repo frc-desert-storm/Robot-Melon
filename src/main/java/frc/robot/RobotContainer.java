@@ -12,7 +12,6 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
-import static frc.robot.Constants.FieldConstants.HUB_CENTER;
 import static frc.robot.Constants.TurretConstants.FLYWHEEL_RADIUS;
 import static frc.robot.Constants.TurretConstants.ROBOT_TO_TURRET_TRANSFORM;
 import static frc.robot.Constants.VisionConstants.*;
@@ -28,7 +27,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -81,9 +79,10 @@ public class RobotContainer {
 
   private static final int SIM_FUEL_CAPACITY = 65;
   private static final double SIM_SHOT_INTERVAL_SEC = 0.18;
-  private static final double SIM_MAX_INTAKE_FUEL_PER_SEC = 12.0;
-  private int simFuelStored = 8;
+  private static final double SIM_MAX_INTAKE_FUEL_PER_SEC = 14;
+  int simFuelStored = 8;
   private double lastSimShotTime = 0.0;
+  int shotFuel = 0;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -144,6 +143,7 @@ public class RobotContainer {
                     VisionConstants.rightCameraName, robotToRightCamera, drive::getPose),
                 new VisionIOPhotonVisionSim(
                     VisionConstants.turretCameraName,
+                    timestamp -> getRobotToTurretCamera(turret.getTurnPositionAt(timestamp)),
                     () -> getRobotToTurretCamera(turret.getTurnPosition()),
                     drive::getPose));
         superstructure =
@@ -300,7 +300,7 @@ public class RobotContainer {
                 () -> {
                   fuelSim.clearFuel();
                   fuelSim.spawnStartingFuel();
-                  simFuelStored = 0;
+                  simFuelStored = 8;
                 })
             .withName("Reset Fuel")
             .ignoringDisable(true));
@@ -327,6 +327,8 @@ public class RobotContainer {
     }
     lastSimShotTime = now;
     simFuelStored--;
+    shotFuel++;
+    Logger.recordOutput("FuelSim/ShotFuel", shotFuel);
 
     fuelSim.launchFuel(
         TurretCalculator.angularToLinearVelocity(turret.getFlywheelSpeed(), FLYWHEEL_RADIUS),
@@ -378,7 +380,7 @@ public class RobotContainer {
   }
 
   public void stopMechanisms() {
-    CommandScheduler.getInstance().schedule(superstructure.idle());
+    superstructure.applyState(Superstructure.SuperstructureState.IDLE);
     drive.stop();
   }
 }

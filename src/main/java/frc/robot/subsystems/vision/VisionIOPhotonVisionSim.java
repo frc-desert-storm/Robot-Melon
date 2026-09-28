@@ -11,6 +11,8 @@ import static frc.robot.Constants.VisionConstants.aprilTagLayout;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Timer;
+import java.util.function.DoubleFunction;
 import java.util.function.Supplier;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
@@ -19,9 +21,10 @@ import org.photonvision.simulation.VisionSystemSim;
 /** IO implementation for physics sim using PhotonVision simulator. */
 public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
   private static VisionSystemSim visionSim;
+  private static double lastUpdateSec = -1.0;
 
   private final Supplier<Pose2d> poseSupplier;
-  private final Supplier<Transform3d> robotToCameraSupplier;
+  private final Supplier<Transform3d> renderCameraSupplier;
   private final PhotonCameraSim cameraSim;
 
   /**
@@ -37,9 +40,26 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
   public VisionIOPhotonVisionSim(
       String name, Supplier<Transform3d> robotToCameraSupplier, Supplier<Pose2d> poseSupplier) {
-    super(name, timestamp -> robotToCameraSupplier.get());
+    this(name, timestamp -> robotToCameraSupplier.get(), robotToCameraSupplier, poseSupplier);
+  }
+
+  /**
+   * Creates a new VisionIOPhotonVisionSim with separate render and decode transforms.
+   *
+   * @param name The name of the camera.
+   * @param robotToCameraFn Timestamp-aware transform used to decode results (matches real code,
+   *     e.g. {@code timestamp -> getRobotToTurretCamera(turret.getTurnPositionAt(timestamp))}).
+   * @param renderCameraSupplier Ground-truth current transform used to render the sim image.
+   * @param poseSupplier Supplier for the robot pose to use in simulation.
+   */
+  public VisionIOPhotonVisionSim(
+      String name,
+      DoubleFunction<Transform3d> robotToCameraFn,
+      Supplier<Transform3d> renderCameraSupplier,
+      Supplier<Pose2d> poseSupplier) {
+    super(name, robotToCameraFn);
     this.poseSupplier = poseSupplier;
-    this.robotToCameraSupplier = robotToCameraSupplier;
+    this.renderCameraSupplier = renderCameraSupplier;
 
     // Initialize vision sim
     if (visionSim == null) {
@@ -50,13 +70,20 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
     // Add sim camera
     var cameraProperties = new SimCameraProperties();
     cameraSim = new PhotonCameraSim(camera, cameraProperties, aprilTagLayout);
-    visionSim.addCamera(cameraSim, robotToCameraSupplier.get());
+    visionSim.addCamera(cameraSim, renderCameraSupplier.get());
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    visionSim.adjustCamera(cameraSim, robotToCameraSupplier.get());
-    visionSim.update(poseSupplier.get());
+    // Render with ground-truth current camera pose.
+    visionSim.adjustCamera(cameraSim, renderCameraSupplier.get());
+    // Step the sim once per loop (not once per camera) so each camera doesn't
+    // push duplicate results. Other cameras render with last tick's pose (1-tick / ~20ms delay).
+    double now = Timer.getFPGATimestamp();
+    if (now != lastUpdateSec) {
+      lastUpdateSec = now;
+      visionSim.update(poseSupplier.get());
+    }
     super.updateInputs(inputs);
   }
 }
