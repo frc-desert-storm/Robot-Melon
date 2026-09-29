@@ -370,11 +370,11 @@ public class Turret extends SubsystemBase {
     if (Robot.isReal()) {
       calculatedShot =
           TurretCalculator.iterativeMovingShotFromMap(
-              robotPose, fieldSpeeds, currentTarget, LOOKAHEAD_ITERATIONS);
+              robotPose, new ChassisSpeeds(), currentTarget, LOOKAHEAD_ITERATIONS);
     } else {
       calculatedShot =
           TurretCalculator.iterativeMovingShotFromFunnelClearance(
-              robotPose, fieldSpeeds, currentTarget, LOOKAHEAD_ITERATIONS);
+              robotPose, new ChassisSpeeds(), currentTarget, LOOKAHEAD_ITERATIONS);
     }
     Angle azimuthAngle =
         TurretCalculator.calculateAzimuthAngle(
