@@ -302,7 +302,9 @@ public class Turret extends SubsystemBase {
 
     Pose2d pose = poseSupplier.get();
 
-    boolean passing = AllianceFlipUtil.applyX(pose.getX()) > FieldConstants.HUB_CENTER.in(Meter);
+    boolean passing =
+        !DriverStation.isAutonomous()
+            && AllianceFlipUtil.applyX(pose.getX()) > FieldConstants.HUB_CENTER.in(Meter);
     setTarget(passing ? getPassingTarget(pose) : FieldConstants.HUB_BLUE);
 
     switch (goal) {
